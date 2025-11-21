@@ -1,270 +1,306 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
-    android:fillViewport="true">
+    android:orientation="vertical"
+    android:background="@color/background">
 
+    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="@dimen/padding_medium">
+        android:orientation="horizontal"
+        android:padding="@dimen/padding_medium"
+        android:background="@color/primary"
+        android:gravity="center_vertical">
 
-        <!-- Header -->
-        <LinearLayout
-            android:layout_width="match_parent"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancelar"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="@dimen/padding_medium"
-            android:background="@color/primary"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="@dimen/margin_medium">
+            android:text="@string/btn_cancel"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/primary_dark" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCancelar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/btn_cancel"
-                android:textColor="@color/white"
-                android:backgroundTint="@color/primary_dark" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/nueva_medicina_title"
-                android:textSize="@dimen/text_size_large"
-                android:textColor="@color/white"
-                android:textStyle="bold"
-                android:gravity="center" />
-
-        </LinearLayout>
-
-        <!-- Formulario -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
+        <TextView
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_medium"
-            app:cardCornerRadius="@dimen/card_corner_radius"
-            app:cardElevation="@dimen/card_elevation">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="@dimen/padding_medium">
-
-                <!-- Nombre del medicamento -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilNombre"
-                    style="@style/FormField"
-                    android:layout_marginBottom="@dimen/margin_medium"
-                    android:hint="@string/field_medicine_name">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etNombre"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="textCapWords" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Presentación -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/field_presentation"
-                    android:textSize="@dimen/text_size_medium"
-                    android:textColor="@color/black"
-                    android:layout_marginBottom="@dimen/margin_small" />
-
-                <Spinner
-                    android:id="@+id/spinnerPresentacion"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/button_height_medium"
-                    android:layout_marginBottom="@dimen/margin_medium" />
-
-                <!-- Afección -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilAfeccion"
-                    style="@style/FormField"
-                    android:layout_marginBottom="@dimen/margin_medium"
-                    android:hint="@string/field_condition">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etAfeccion"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="textCapWords" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Tomas diarias -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilTomasDiarias"
-                    style="@style/FormField"
-                    android:layout_marginBottom="@dimen/margin_medium"
-                    android:hint="@string/field_daily_doses">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etTomasDiarias"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="number" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Horario primera toma -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilHorarioPrimeraToma"
-                    style="@style/FormField"
-                    android:layout_marginBottom="@dimen/margin_medium"
-                    android:hint="@string/field_first_dose_time">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etHorarioPrimeraToma"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="time"
-                        android:hint="HH:mm" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Stock inicial -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilStockInicial"
-                    style="@style/FormField"
-                    android:layout_marginBottom="@dimen/margin_medium"
-                    android:hint="@string/field_initial_stock">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etStockInicial"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="number" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Días de tratamiento -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilDiasTratamiento"
-                    style="@style/FormField"
-                    android:layout_marginBottom="@dimen/margin_medium"
-                    android:hint="@string/field_treatment_days">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etDiasTratamiento"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="number"
-                        android:hint="-1 para crónico" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Detalles adicionales -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilDetalles"
-                    style="@style/FormField"
-                    android:layout_marginBottom="@dimen/margin_medium"
-                    android:hint="@string/field_additional_details">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etDetalles"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="textMultiLine"
-                        android:lines="3" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Configuraciones adicionales -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_medium"
-            app:cardCornerRadius="@dimen/card_corner_radius"
-            app:cardElevation="@dimen/card_elevation">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="@dimen/padding_medium">
-
-                <!-- Color del medicamento -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/field_medicine_color"
-                    android:textSize="@dimen/text_size_medium"
-                    android:textColor="@color/black"
-                    android:layout_marginBottom="@dimen/margin_small" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnSeleccionarColor"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/button_height_medium"
-                    android:text="@string/btn_select_color"
-                    android:textColor="@color/white"
-                    android:backgroundTint="@color/medicamento_azul"
-                    android:layout_marginBottom="@dimen/margin_medium" />
-
-                <!-- Fecha de vencimiento -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/field_expiration_date"
-                    android:textSize="@dimen/text_size_medium"
-                    android:textColor="@color/black"
-                    android:layout_marginBottom="@dimen/margin_small" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnFechaVencimiento"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/button_height_medium"
-                    android:text="@string/btn_select_expiration_date"
-                    android:textColor="@color/white"
-                    android:backgroundTint="@color/warning" />
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Botones de acción -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnGuardar"
-                android:layout_width="0dp"
-                android:layout_height="@dimen/button_height_large"
-                android:layout_weight="1"
-                android:text="@string/btn_save"
-                android:textColor="@color/white"
-                android:backgroundTint="@color/success"
-                android:layout_marginEnd="@dimen/margin_small" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCancelar"
-                android:layout_width="0dp"
-                android:layout_height="@dimen/button_height_large"
-                android:layout_weight="1"
-                android:text="@string/btn_cancel"
-                android:textColor="@color/white"
-                android:backgroundTint="@color/error"
-                android:layout_marginStart="@dimen/margin_small" />
-
-        </LinearLayout>
+            android:layout_weight="1"
+            android:text="@string/nueva_medicina_title"
+            android:textSize="@dimen/text_size_large"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:gravity="center" />
 
     </LinearLayout>
 
-</ScrollView>
+    <!-- ScrollView para el contenido -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/padding_medium">
+
+            <!-- Formulario -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_medium"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                app:cardElevation="@dimen/card_elevation">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/padding_medium">
+
+                    <!-- Nombre del medicamento -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilNombre"
+                        style="@style/FormField"
+                        android:layout_marginBottom="@dimen/margin_medium"
+                        android:hint="@string/field_medicine_name"
+                        app:hintTextAppearance="@style/TextAppearance.Material3.BodyLarge">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etNombre"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textCapWords|textAutoComplete"
+                            android:textSize="@dimen/text_size_medium"
+                            android:textStyle="bold" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Presentación -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/field_presentation"
+                        android:textSize="@dimen/text_size_medium"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="@dimen/margin_small" />
+
+                    <Spinner
+                        android:id="@+id/spinnerPresentacion"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/button_height_medium"
+                        android:layout_marginBottom="@dimen/margin_medium" />
+
+                    <!-- Afección -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilAfeccion"
+                        style="@style/FormField"
+                        android:layout_marginBottom="@dimen/margin_medium"
+                        android:hint="@string/field_condition"
+                        app:hintTextAppearance="@style/TextAppearance.Material3.BodyLarge">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etAfeccion"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textCapWords|textAutoComplete"
+                            android:textSize="@dimen/text_size_medium"
+                            android:textStyle="bold" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Tomas diarias -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilTomasDiarias"
+                        style="@style/FormField"
+                        android:layout_marginBottom="@dimen/margin_medium"
+                        android:hint="@string/field_daily_doses"
+                        app:hintTextAppearance="@style/TextAppearance.Material3.BodyLarge">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etTomasDiarias"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:textSize="@dimen/text_size_medium"
+                            android:textStyle="bold"
+                            android:hint="@string/hint_doses_example" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Horario primera toma -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/field_first_dose_time"
+                        android:textSize="@dimen/text_size_medium"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="@dimen/margin_small" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSeleccionarHora"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/button_height_medium"
+                        android:text="@string/hint_time_example"
+                        android:textColor="@color/white"
+                        android:backgroundTint="@color/primary"
+                        android:layout_marginBottom="@dimen/margin_medium" />
+
+                    <!-- Stock inicial -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilStockInicial"
+                        style="@style/FormField"
+                        android:layout_marginBottom="@dimen/margin_medium"
+                        android:hint="@string/field_initial_stock"
+                        app:hintTextAppearance="@style/TextAppearance.Material3.BodyLarge">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etStockInicial"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:textSize="@dimen/text_size_medium"
+                            android:textStyle="bold"
+                            android:hint="@string/hint_stock_example" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Días de tratamiento -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilDiasTratamiento"
+                        style="@style/FormField"
+                        android:layout_marginBottom="@dimen/margin_medium"
+                        android:hint="@string/field_treatment_days"
+                        app:hintTextAppearance="@style/TextAppearance.Material3.BodyLarge">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etDiasTratamiento"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="numberSigned|text"
+                            android:textSize="@dimen/text_size_medium"
+                            android:textStyle="bold"
+                            android:hint="@string/hint_treatment_days_example" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Detalles adicionales -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilDetalles"
+                        style="@style/FormField"
+                        android:layout_marginBottom="@dimen/margin_medium"
+                        android:hint="@string/field_additional_details"
+                        app:hintTextAppearance="@style/TextAppearance.Material3.BodyLarge">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etDetalles"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textMultiLine|textCapSentences"
+                            android:textSize="@dimen/text_size_medium"
+                            android:textStyle="bold"
+                            android:lines="3" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Configuraciones adicionales -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_medium"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                app:cardElevation="@dimen/card_elevation">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/padding_medium">
+
+                    <!-- Color del medicamento -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/field_medicine_color"
+                        android:textSize="@dimen/text_size_medium"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="@dimen/margin_small" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSeleccionarColor"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/button_height_medium"
+                        android:text="@string/btn_select_color"
+                        android:textColor="@color/white"
+                        android:backgroundTint="@color/medicamento_azul"
+                        android:layout_marginBottom="@dimen/margin_medium" />
+
+                    <!-- Fecha de vencimiento -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/field_expiration_date"
+                        android:textSize="@dimen/text_size_medium"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="@dimen/margin_small" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnFechaVencimiento"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/button_height_medium"
+                        android:text="@string/btn_select_expiration_date"
+                        android:textColor="@color/white"
+                        android:backgroundTint="@color/warning" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <!-- Botones de acción FIJOS en la parte inferior -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="@dimen/padding_medium"
+        android:background="@color/surface">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGuardar"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/button_height_large"
+            android:layout_weight="1"
+            android:text="@string/btn_save"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/success"
+            android:layout_marginEnd="@dimen/margin_small" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancelarAccion"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/button_height_large"
+            android:layout_weight="1"
+            android:text="@string/btn_cancel"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/error"
+            android:layout_marginStart="@dimen/margin_small" />
+
+    </LinearLayout>
+
+</LinearLayout>

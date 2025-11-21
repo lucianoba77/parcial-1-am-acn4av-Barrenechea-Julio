@@ -33,4 +33,17 @@
     <color name="warning">#FF9800</color>
     <color name="error">#F44336</color>
     <color name="info">#2196F3</color>
+
+    <!-- Headers por pantalla -->
+    <color name="header_login">#2196F3</color>
+    <color name="header_main">#2196F3</color>
+    <color name="header_botiquin">#4CAF50</color>
+    <color name="header_historial">#9C27B0</color>
+    <color name="header_ajustes">#FF9800</color>
+
+    <!-- Colores para días de la semana -->
+    <color name="day_fulfilled">#4CAF50</color>
+    <color name="day_missed">#E91E63</color>
+    <color name="day_neutral">#9E9E9E</color>
+
 </resources>

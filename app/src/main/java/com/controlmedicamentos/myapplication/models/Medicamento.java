@@ -1,5 +1,7 @@
 package com.controlmedicamentos.myapplication.models;
 
+import com.controlmedicamentos.myapplication.R;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -261,8 +263,28 @@ public class Medicamento {
         this.horariosTomas = horariosTomas;
     }
 
+    // Método para asignar icono según presentación
     public int getIconoPresentacion() {
-        return iconoPresentacion;
+        switch (presentacion.toLowerCase()) {
+            case "comprimidos":
+            case "cápsulas":
+                return R.drawable.ic_pills;
+            case "jarabe":
+                return R.drawable.ic_syrup;
+            case "crema":
+            case "pomada":
+                return R.drawable.ic_cream;
+            case "spray nasal":
+                return R.drawable.ic_spray;
+            case "inyección":
+                return R.drawable.ic_injection;
+            case "gotas":
+                return R.drawable.ic_drops;
+            case "parche":
+                return R.drawable.ic_patch;
+            default:
+                return R.drawable.ic_pills;
+        }
     }
 
     public void setIconoPresentacion(int iconoPresentacion) {

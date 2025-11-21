@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App Name -->
-    <string name="app_name">Control Medicamentos</string>
+    <string name="app_name">Mis Medicinas</string>
 
     <!-- Login -->
     <string name="login_title">Iniciar Sesión</string>
-    <string name="login_email_hint">Correo electrónico</string>
-    <string name="login_password_hint">Contraseña</string>
-    <string name="login_button">Iniciar Sesión</string>
-    <string name="register_button">Crear Cuenta</string>
-    <string name="login_help_text">¿Necesitas ayuda? Contacta con tu familiar responsable</string>
+    <string name="login_subtitle">Tu asistente personal de medicamentos</string>
+    <string name="login_toggle_login">Iniciar Sesión</string>
+    <string name="login_toggle_register">Registrarse</string>
 
     <!-- Main Activity -->
-    <string name="main_title">Mis Medicamentos</string>
-    <string name="main_no_medicines">No tienes medicamentos registrados</string>
-    <string name="main_add_first_medicine">Agregar mi primer medicamento</string>
+    <string name="main_greeting">¡Hola, %s!</string>
+    <string name="main_subtitle">Mantén tu tratamiento al día</string>
+    <string name="main_title">Medicamentos de hoy</string>
 
     <!-- Navigation -->
     <string name="nav_new_medicine">Nueva\nMedicina</string>
@@ -36,6 +34,7 @@
 
     <!-- Medicine Types -->
     <string name="medicine_type_pills">Comprimidos</string>
+    <string name="medicine_type_capsules">Cápsulas</string>
     <string name="medicine_type_syrup">Jarabe</string>
     <string name="medicine_type_cream">Crema</string>
     <string name="medicine_type_spray">Spray nasal</string>
@@ -94,51 +93,34 @@
 
     <!-- Botiquín -->
     <string name="botiquin_title">Mi Botiquín</string>
-    <string name="medicine_expired">Vencido</string>
-    <string name="medicine_paused">Pausado</string>
-    <string name="stock_low">Stock Bajo</string>
-    <string name="stock_ok">Stock OK</string>
-    <string name="delete_medicine_title">Eliminar Medicamento</string>
-    <string name="delete_medicine_message">¿Estás seguro de que quieres eliminar %s?</string>
+    <string name="btn_suspend">Suspender</string>
 
     <!-- Nueva Medicina -->
     <string name="nueva_medicina_title">Nueva Medicina</string>
-    <string name="medicine_saved_success">Medicamento guardado exitosamente</string>
+    <string name="field_chronic_treatment">Crónico</string>
+    <string name="field_activate_alarms">Activar alarmas</string>
+    <string name="field_alarm_tone">Tono de alarma</string>
+    <string name="field_alarm_repetitions">Repeticiones de alarma</string>
 
     <!-- Historial -->
     <string name="historial_title">Historial</string>
-    <string name="statistics_title">Estadísticas Generales</string>
-    <string name="loading_statistics">Cargando estadísticas...</string>
-    <string name="adherence_chart_title">Adherencia por Medicamento</string>
-    <string name="completed_treatments_title">Tratamientos Concluidos</string>
-    <string name="treatment_start_date">Fecha de inicio</string>
-    <string name="treatment_end_date">Fecha de fin</string>
-    <string name="treatment_duration">Duración del tratamiento</string>
-    <string name="adherence_general">Adherencia General</string>
-    <string name="active_treatments">Tratamientos Activos</string>
-    <string name="completed_treatments">Tratamientos Concluidos</string>
-    <string name="adherence_percentage">%.1f%%</string>
+    <string name="total_medicines">Total medicamentos</string>
+    <string name="active_medicines">Activos</string>
+    <string name="completed_medicines">Completados</string>
+    <string name="treatment_adherence">Adherencia al tratamiento</string>
+    <string name="weekly_summary">Resumen semanal</string>
+    <string name="fulfilled">Cumplido</string>
+    <string name="missed">Perdido</string>
 
     <!-- Ajustes -->
     <string name="ajustes_title">Ajustes</string>
-    <string name="user_data_title">Datos del Usuario</string>
-    <string name="notifications_title">Configuración de Notificaciones</string>
-    <string name="stock_settings_title">Configuración de Stock</string>
-    <string name="enable_notifications">Habilitar notificaciones</string>
-    <string name="enable_vibration">Habilitar vibración</string>
-    <string name="enable_sound">Habilitar sonido</string>
-    <string name="volume_level">Nivel de volumen</string>
-    <string name="repetitions_count">Número de repeticiones</string>
-    <string name="days_before_low_stock">Días antes de notificar stock bajo</string>
-    <string name="configuration_saved">Configuración guardada</string>
-    <string name="data_reset">Datos reseteados</string>
-    <string name="reset_data_title">Resetear Datos</string>
-    <string name="reset_data_message">¿Estás seguro de que quieres resetear todos los datos? Esta acción no se puede deshacer.</string>
-    <string name="days_antelacion_title">Días de antelación para stock bajo</string>
-    <string name="day_1">1 día</string>
-    <string name="day_2">2 días</string>
-    <string name="day_3">3 días</string>
-    <string name="day_5">5 días</string>
-    <string name="day_7">7 días</string>
+    <string name="personal_info">Información personal</string>
+    <string name="alarms">Alarmas</string>
+    <string name="stock_alerts">Alertas de stock</string>
+    <string name="activate_notifications">Activar notificaciones</string>
+    <string name="alarm_tone">Tono de alarma</string>
+    <string name="alarm_repetitions">Repeticiones de alarma</string>
+    <string name="days_before_low_stock">Días antes de aviso por stock bajo</string>
+    <string name="stock_notification_description">Recibirás una notificación cuando el stock sea suficiente para %d días o menos</string>
 
 </resources>

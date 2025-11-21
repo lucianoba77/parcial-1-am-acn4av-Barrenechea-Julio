@@ -1,10 +1,14 @@
 package com.controlmedicamentos.myapplication;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.TimePicker;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
@@ -19,13 +23,15 @@ public class NuevaMedicinaActivity extends AppCompatActivity {
 
     private TextInputEditText etNombre, etAfeccion, etDetalles;
     private TextInputLayout tilNombre, tilAfeccion;
-    private MaterialButton btnGuardar, btnCancelar, btnSeleccionarColor, btnFechaVencimiento;
+    private MaterialButton btnGuardar, btnCancelar, btnSeleccionarColor, btnFechaVencimiento, btnCancelarAccion;
+    private MaterialButton btnSeleccionarHora;
     private android.widget.Spinner spinnerPresentacion;
-    private TextInputEditText etTomasDiarias, etHorarioPrimeraToma, etStockInicial, etDiasTratamiento;
-    private TextInputLayout tilTomasDiarias, tilHorarioPrimeraToma, tilStockInicial, tilDiasTratamiento;
+    private TextInputEditText etTomasDiarias, etStockInicial, etDiasTratamiento;
+    private TextInputLayout tilTomasDiarias, tilStockInicial, tilDiasTratamiento;
 
     private int colorSeleccionado = R.color.medicamento_azul;
     private Calendar fechaVencimiento = null;
+    private String horaSeleccionada = "08:00";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,17 +52,17 @@ public class NuevaMedicinaActivity extends AppCompatActivity {
 
         btnGuardar = findViewById(R.id.btnGuardar);
         btnCancelar = findViewById(R.id.btnCancelar);
+        btnCancelarAccion = findViewById(R.id.btnCancelarAccion);
         btnSeleccionarColor = findViewById(R.id.btnSeleccionarColor);
         btnFechaVencimiento = findViewById(R.id.btnFechaVencimiento);
+        btnSeleccionarHora = findViewById(R.id.btnSeleccionarHora);
 
         spinnerPresentacion = findViewById(R.id.spinnerPresentacion);
         etTomasDiarias = findViewById(R.id.etTomasDiarias);
-        etHorarioPrimeraToma = findViewById(R.id.etHorarioPrimeraToma);
         etStockInicial = findViewById(R.id.etStockInicial);
         etDiasTratamiento = findViewById(R.id.etDiasTratamiento);
 
         tilTomasDiarias = findViewById(R.id.tilTomasDiarias);
-        tilHorarioPrimeraToma = findViewById(R.id.tilHorarioPrimeraToma);
         tilStockInicial = findViewById(R.id.tilStockInicial);
         tilDiasTratamiento = findViewById(R.id.tilDiasTratamiento);
     }
@@ -88,10 +94,24 @@ public class NuevaMedicinaActivity extends AppCompatActivity {
             }
         });
 
+        btnCancelarAccion.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+
         btnSeleccionarColor.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mostrarSelectorColor();
+            }
+        });
+
+        btnSeleccionarHora.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mostrarSelectorHora();
             }
         });
 
@@ -102,7 +122,55 @@ public class NuevaMedicinaActivity extends AppCompatActivity {
             }
         });
     }
+    private void configurarSpinner() {
+        String[] presentaciones = {
+                "Comprimidos", "Cápsulas", "Jarabe", "Crema",
+                "Pomada", "Spray nasal", "Inyección", "Gotas", "Parche"
+        };
 
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, presentaciones);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerPresentacion.setAdapter(adapter);
+
+        // Listener para cambiar el hint según la presentación
+        spinnerPresentacion.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String presentacion = presentaciones[position];
+                actualizarHintStock(presentacion);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+    }
+
+    private void actualizarHintStock(String presentacion) {
+        switch (presentacion) {
+            case "Comprimidos":
+            case "Cápsulas":
+                tilStockInicial.setHint("Cantidad de comprimidos");
+                etStockInicial.setHint("30");
+                break;
+            case "Jarabe":
+            case "Inyección":
+                tilStockInicial.setHint("Días estimados de duración");
+                etStockInicial.setHint("15");
+                break;
+            case "Crema":
+            case "Pomada":
+            case "Parche":
+                tilStockInicial.setHint("Días estimados de duración");
+                etStockInicial.setHint("20");
+                break;
+            case "Spray nasal":
+            case "Gotas":
+                tilStockInicial.setHint("Días estimados de duración");
+                etStockInicial.setHint("10");
+                break;
+        }
+    }
     private void guardarMedicamento() {
         if (validarFormulario()) {
             Medicamento medicamento = crearMedicamento();
@@ -137,11 +205,9 @@ public class NuevaMedicinaActivity extends AppCompatActivity {
             tilTomasDiarias.setError(null);
         }
 
-        if (TextUtils.isEmpty(etHorarioPrimeraToma.getText())) {
-            tilHorarioPrimeraToma.setError("El horario es requerido");
+        if (TextUtils.isEmpty(btnSeleccionarHora.getText())) {
+            Toast.makeText(this, "Debe seleccionar una hora", Toast.LENGTH_SHORT).show();
             valido = false;
-        } else {
-            tilHorarioPrimeraToma.setError(null);
         }
 
         if (TextUtils.isEmpty(etStockInicial.getText())) {
@@ -160,11 +226,10 @@ public class NuevaMedicinaActivity extends AppCompatActivity {
         String detalles = etDetalles.getText().toString();
         String presentacion = spinnerPresentacion.getSelectedItem().toString();
         int tomasDiarias = Integer.parseInt(etTomasDiarias.getText().toString());
-        String horarioPrimeraToma = etHorarioPrimeraToma.getText().toString();
+        String horarioPrimeraToma = horaSeleccionada;
         int stockInicial = Integer.parseInt(etStockInicial.getText().toString());
         int diasTratamiento = Integer.parseInt(etDiasTratamiento.getText().toString());
 
-        // Generar ID único
         String id = String.valueOf(System.currentTimeMillis());
 
         Medicamento medicamento = new Medicamento(
@@ -182,8 +247,44 @@ public class NuevaMedicinaActivity extends AppCompatActivity {
     }
 
     private void mostrarSelectorColor() {
-        // TODO: Implementar selector de color
-        Toast.makeText(this, "Selector de color - Próximamente", Toast.LENGTH_SHORT).show();
+        String[] colores = {"Azul", "Verde", "Rojo", "Naranja", "Morado", "Amarillo"};
+        int[] valoresColores = {
+                R.color.medicamento_azul,
+                R.color.medicamento_verde,
+                R.color.medicamento_rojo,
+                R.color.medicamento_naranja,
+                R.color.medicamento_morado,
+                R.color.medicamento_amarillo
+        };
+
+        new AlertDialog.Builder(this)
+                .setTitle("Seleccionar Color")
+                .setItems(colores, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        colorSeleccionado = valoresColores[which];
+                        btnSeleccionarColor.setBackgroundColor(getResources().getColor(colorSeleccionado));
+                        btnSeleccionarColor.setText(colores[which]);
+                    }
+                })
+                .show();
+    }
+
+    private void mostrarSelectorHora() {
+        String[] partes = horaSeleccionada.split(":");
+        int hora = Integer.parseInt(partes[0]);
+        int minuto = Integer.parseInt(partes[1]);
+
+        TimePickerDialog timePickerDialog = new TimePickerDialog(this,
+                new TimePickerDialog.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                        horaSeleccionada = String.format("%02d:%02d", hourOfDay, minute);
+                        btnSeleccionarHora.setText(horaSeleccionada);
+                    }
+                }, hora, minuto, true);
+
+        timePickerDialog.show();
     }
 
     private void mostrarSelectorFecha() {
