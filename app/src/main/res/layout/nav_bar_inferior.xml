@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/barraNavegacion"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="@dimen/padding_medium"
+    android:background="@color/surface"
+    android:elevation="8dp">
+
+    <!-- Botón Home -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnNavHome"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/button_height_large"
+        android:layout_weight="1"
+        android:layout_marginEnd="@dimen/margin_small"
+        android:text="@string/nav_home"
+        android:textSize="@dimen/text_size_small"
+        android:textColor="@color/nav_active"
+        android:backgroundTint="@android:color/transparent"
+        android:drawableTop="@drawable/ic_home"
+        android:drawablePadding="@dimen/padding_small"
+        style="@style/NavigationButton" />
+
+    <!-- Botón Nueva Medicina -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnNavNuevaMedicina"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/button_height_large"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/margin_small"
+        android:layout_marginEnd="@dimen/margin_small"
+        android:text="@string/nav_new_medicine"
+        android:textSize="@dimen/text_size_small"
+        android:textColor="@color/nav_add"
+        android:backgroundTint="@android:color/transparent"
+        android:drawableTop="@drawable/ic_add"
+        android:drawablePadding="@dimen/padding_small"
+        style="@style/NavigationButton" />
+
+    <!-- Botón Botiquín -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnNavBotiquin"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/button_height_large"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/margin_small"
+        android:layout_marginEnd="@dimen/margin_small"
+        android:text="@string/nav_medicine_cabinet"
+        android:textSize="@dimen/text_size_small"
+        android:textColor="@color/nav_cabinet"
+        android:backgroundTint="@android:color/transparent"
+        android:drawableTop="@drawable/ic_first_aid_kit"
+        android:drawablePadding="@dimen/padding_small"
+        style="@style/NavigationButton" />
+
+    <!-- Botón Ajustes/Configuración -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnNavAjustes"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/button_height_large"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/margin_small"
+        android:text="@string/nav_settings"
+        android:textSize="@dimen/text_size_small"
+        android:textColor="@color/nav_settings"
+        android:backgroundTint="@android:color/transparent"
+        android:drawableTop="@drawable/ic_settings"
+        android:drawablePadding="@dimen/padding_small"
+        style="@style/NavigationButton" />
+
+</LinearLayout>

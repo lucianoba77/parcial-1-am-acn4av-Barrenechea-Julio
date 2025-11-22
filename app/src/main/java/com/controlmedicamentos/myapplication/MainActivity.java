@@ -24,17 +24,24 @@ public class MainActivity extends AppCompatActivity implements MedicamentoAdapte
 
     private static final String TAG = "MainActivity";
     private RecyclerView rvMedicamentos;
-    private MaterialButton btnNuevaMedicina, btnBotiquin, btnHistorial, btnAjustes, btnLogout;
+    // Botones de navegación
+    private MaterialButton btnNavHome, btnNavNuevaMedicina, btnNavBotiquin, btnNavAjustes;
     private ProgressBar progressBar;
     private MedicamentoAdapter adapter;
     private List<Medicamento> medicamentos;
     private AuthService authService;
     private FirebaseService firebaseService;
     private ListenerRegistration medicamentosListener;
+    private boolean listenerYaActualizo = false; // Flag para evitar que la carga inicial sobrescriba los datos del listener
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Ocultar ActionBar/Toolbar para que no muestre el título duplicado
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
         
         try {
             Log.d(TAG, "=== Iniciando MainActivity ===");
@@ -98,11 +105,11 @@ public class MainActivity extends AppCompatActivity implements MedicamentoAdapte
     private void inicializarVistas() {
         try {
             rvMedicamentos = findViewById(R.id.rvMedicamentos);
-            btnNuevaMedicina = findViewById(R.id.btnNuevaMedicina);
-            btnBotiquin = findViewById(R.id.btnBotiquin);
-            btnHistorial = findViewById(R.id.btnHistorial);
-            btnAjustes = findViewById(R.id.btnAjustes);
-            btnLogout = findViewById(R.id.btnLogout);
+            // Botones de navegación
+            btnNavHome = findViewById(R.id.btnNavHome);
+            btnNavNuevaMedicina = findViewById(R.id.btnNavNuevaMedicina);
+            btnNavBotiquin = findViewById(R.id.btnNavBotiquin);
+            btnNavAjustes = findViewById(R.id.btnNavAjustes);
             
             // Verificar que las vistas críticas existan
             if (rvMedicamentos == null) {
@@ -164,6 +171,12 @@ public class MainActivity extends AppCompatActivity implements MedicamentoAdapte
                     // Lógica consistente con React: DashboardScreen.jsx líneas 19-23
                     List<Medicamento> medicamentosParaDashboard = new ArrayList<>();
                     for (Medicamento med : medicamentos) {
+                        // Log detallado para debugging
+                        Log.d(TAG, "Medicamento: " + med.getNombre() + 
+                            ", Activo: " + med.isActivo() + 
+                            ", TomasDiarias: " + med.getTomasDiarias() + 
+                            ", PrimeraToma: '" + med.getHorarioPrimeraToma() + "'");
+                        
                         // Mostrar solo si:
                         // 1. activo !== false (activo es true o no está definido)
                         // 2. tomasDiarias > 0
@@ -174,24 +187,38 @@ public class MainActivity extends AppCompatActivity implements MedicamentoAdapte
                             !med.getHorarioPrimeraToma().isEmpty() &&
                             !med.getHorarioPrimeraToma().equals("00:00")) {
                             medicamentosParaDashboard.add(med);
+                            Log.d(TAG, "  -> INCLUIDO en dashboard");
+                        } else {
+                            Log.d(TAG, "  -> EXCLUIDO del dashboard");
                         }
                         // Los medicamentos ocasionales (tomasDiarias = 0) no aparecen aquí,
                         // solo en el botiquín
                     }
+                    Log.d(TAG, "Total medicamentos para dashboard: " + medicamentosParaDashboard.size());
                     
                     // Verificar que el adapter esté inicializado
-                    if (adapter != null) {
+                    // Solo actualizar si el listener no ha actualizado ya (evitar sobrescribir datos más recientes)
+                    if (adapter != null && !listenerYaActualizo) {
                         // Ordenar por horario más próximo
                         medicamentos = medicamentosParaDashboard;
                         ordenarMedicamentosPorHorario();
                         adapter.actualizarMedicamentos(medicamentos);
+                        Log.d(TAG, "Carga inicial: dashboard actualizado con " + medicamentos.size() + " medicamentos");
+                    } else if (listenerYaActualizo) {
+                        Log.d(TAG, "Carga inicial: omitida porque el listener ya actualizó los datos");
                     } else {
                         Log.e(TAG, "Adapter es null, no se puede actualizar");
                     }
                     
-                    if (medicamentos.isEmpty()) {
-                        Toast.makeText(MainActivity.this, "No tienes medicamentos con tomas programadas. Los medicamentos ocasionales aparecen en el botiquín.", Toast.LENGTH_LONG).show();
-                    }
+                    // Verificar alertas de stock con TODOS los medicamentos (no solo los del dashboard)
+                    // Consistente con React: useStockAlerts
+                    verificarAlertasStock((List<Medicamento>) result);
+                    
+                    // NO mostrar el mensaje de "no hay medicamentos" en la carga inicial porque:
+                    // 1. El listener en tiempo real se ejecutará inmediatamente después y puede actualizar los datos
+                    // 2. Si realmente no hay medicamentos, el usuario puede verlo en la lista vacía
+                    // 3. El mensaje puede aparecer brevemente y confundir al usuario
+                    // El mensaje se mostrará solo en el listener si después de un delay sigue vacío
                 } catch (Exception e) {
                     Log.e(TAG, "Error al procesar medicamentos cargados", e);
                     Toast.makeText(MainActivity.this, "Error al procesar medicamentos", Toast.LENGTH_SHORT).show();
@@ -268,7 +295,25 @@ public class MainActivity extends AppCompatActivity implements MedicamentoAdapte
                             if (adapter != null) {
                                 ordenarMedicamentosPorHorario();
                                 adapter.actualizarMedicamentos(medicamentos);
+                                listenerYaActualizo = true; // Marcar DESPUÉS de actualizar el adapter
                                 Log.d(TAG, "Listener: dashboard actualizado con " + medicamentos.size() + " medicamentos");
+                                
+                                // Solo mostrar mensaje si realmente no hay medicamentos después de que el listener se haya ejecutado
+                                // y solo si la lista sigue vacía después de un pequeño delay para evitar mensajes intermitentes
+                                if (medicamentos.isEmpty()) {
+                                    // Usar un handler para mostrar el mensaje después de un pequeño delay
+                                    // Esto evita que el mensaje aparezca brevemente antes de que los datos se carguen
+                                    new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            // Verificar nuevamente si sigue vacío (por si acaso se actualizó en el delay)
+                                            if (adapter != null && adapter.getItemCount() == 0) {
+                                                // No mostrar Toast, solo log para debugging
+                                                Log.d(TAG, "No hay medicamentos programados para mostrar en el dashboard");
+                                            }
+                                        }
+                                    }, 500); // Esperar 500ms antes de verificar
+                                }
                             }
                             
                             // Verificar alertas de stock cuando se actualizan los medicamentos
@@ -302,55 +347,38 @@ public class MainActivity extends AppCompatActivity implements MedicamentoAdapte
     }
 
     private void configurarNavegacion() {
-        btnNuevaMedicina.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        // Botón Home - ya estamos en home, no hacer nada
+        if (btnNavHome != null) {
+            btnNavHome.setOnClickListener(v -> {
+                // Ya estamos en home
+            });
+        }
+        
+        // Botón Nueva Medicina
+        if (btnNavNuevaMedicina != null) {
+            btnNavNuevaMedicina.setOnClickListener(v -> {
                 Intent intent = new Intent(MainActivity.this, NuevaMedicinaActivity.class);
                 startActivity(intent);
-            }
-        });
+            });
+        }
 
-        btnBotiquin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        // Botón Botiquín
+        if (btnNavBotiquin != null) {
+            btnNavBotiquin.setOnClickListener(v -> {
                 Intent intent = new Intent(MainActivity.this, BotiquinActivity.class);
                 startActivity(intent);
-            }
-        });
+                finish();
+            });
+        }
 
-        btnHistorial.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, HistorialActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        btnAjustes.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        // Botón Ajustes
+        if (btnNavAjustes != null) {
+            btnNavAjustes.setOnClickListener(v -> {
                 Intent intent = new Intent(MainActivity.this, AjustesActivity.class);
                 startActivity(intent);
-            }
-        });
-
-        btnLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                realizarLogout();
-            }
-        });
-    }
-
-    private void realizarLogout() {
-        // Cerrar sesión en Firebase
-        authService.logout();
-        
-        // Ir a LoginActivity
-        Intent intent = new Intent(this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
+                finish();
+            });
+        }
     }
 
     // Implementar métodos de la interfaz
@@ -389,5 +417,33 @@ public class MainActivity extends AppCompatActivity implements MedicamentoAdapte
         // Mostrar detalles del medicamento
         Toast.makeText(this, "Detalles de " + medicamento.getNombre(), Toast.LENGTH_SHORT).show();
         // TODO: Implementar pantalla de detalles
+    }
+
+    /**
+     * Verifica alertas de stock para todos los medicamentos
+     * Consistente con React: useStockAlerts.js
+     */
+    private void verificarAlertasStock(List<Medicamento> todosLosMedicamentos) {
+        // Obtener días de antelación desde SharedPreferences (por defecto 7)
+        android.content.SharedPreferences prefs = getSharedPreferences("ControlMedicamentos", MODE_PRIVATE);
+        int diasAntesAlerta = prefs.getInt("dias_antelacion_stock", 7);
+        
+        StockAlertUtils.verificarStock(todosLosMedicamentos, new StockAlertUtils.StockAlertListener() {
+            @Override
+            public void onStockAgotado(Medicamento medicamento) {
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this, 
+                        "⚠️ " + medicamento.getNombre() + " se ha agotado. Por favor, recarga tu stock.", 
+                        Toast.LENGTH_LONG).show();
+                });
+            }
+
+            @Override
+            public void onStockBajo(Medicamento medicamento, int diasRestantes, String mensaje) {
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this, "⚠️ " + mensaje, Toast.LENGTH_LONG).show();
+                });
+            }
+        }, diasAntesAlerta);
     }
 }

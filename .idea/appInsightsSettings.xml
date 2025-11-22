@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.controlmedicamentos.myapplication" />
+                  <option name="mobileSdkAppId" value="1:938306231220:android:a7f73d4c3997f1dab4f0e1" />
+                  <option name="projectId" value="mimedicinaapp" />
+                  <option name="projectNumber" value="938306231220" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

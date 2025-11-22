@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/background">
 
     <!-- Header -->
@@ -12,21 +11,14 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="@dimen/padding_medium"
+        android:paddingTop="?attr/actionBarSize"
         android:background="@color/primary"
-        android:gravity="center_vertical">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCancelar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/btn_cancel"
-            android:textColor="@color/white"
-            android:backgroundTint="@color/primary_dark" />
+        android:gravity="center_vertical"
+        android:fitsSystemWindows="true">
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:text="@string/nueva_medicina_title"
             android:textSize="@dimen/text_size_large"
             android:textColor="@color/white"
@@ -37,9 +29,10 @@
 
     <!-- ScrollView para el contenido -->
     <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/layoutBotonesAccion"
         android:fillViewport="true">
 
         <LinearLayout
@@ -272,14 +265,16 @@
 
     </ScrollView>
 
-    <!-- Botones de acción FIJOS en la parte inferior -->
+    <!-- Botones de acción FIJOS en la parte inferior (antes de la barra de navegación) -->
     <LinearLayout
+        android:id="@+id/layoutBotonesAccion"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
         android:padding="@dimen/padding_medium"
-        android:background="@color/surface">
+        android:background="@color/surface"
+        android:layout_above="@+id/barraNavegacion">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnGuardar"
@@ -303,4 +298,12 @@
 
     </LinearLayout>
 
-</LinearLayout>
+    <!-- Barra de navegación inferior -->
+    <include
+        android:id="@+id/barraNavegacion"
+        layout="@layout/nav_bar_inferior"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true" />
+
+</RelativeLayout>

@@ -42,11 +42,11 @@ public class HistorialAdapter extends RecyclerView.Adapter<HistorialAdapter.Hist
 
     @Override
     public int getItemCount() {
-        return medicamentos.size();
+        return medicamentos != null ? medicamentos.size() : 0;
     }
 
     public void actualizarMedicamentos(List<Medicamento> nuevosMedicamentos) {
-        this.medicamentos = nuevosMedicamentos;
+        this.medicamentos = nuevosMedicamentos != null ? nuevosMedicamentos : new java.util.ArrayList<>();
         notifyDataSetChanged();
     }
 

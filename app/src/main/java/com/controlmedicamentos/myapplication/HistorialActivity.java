@@ -18,6 +18,7 @@ import com.controlmedicamentos.myapplication.models.Medicamento;
 import com.controlmedicamentos.myapplication.services.AuthService;
 import com.controlmedicamentos.myapplication.services.FirebaseService;
 import com.controlmedicamentos.myapplication.utils.NetworkUtils;
+import android.content.Intent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,14 +28,22 @@ public class HistorialActivity extends AppCompatActivity {
     private RecyclerView rvTratamientosConcluidos;
     private TextView tvEstadisticasGenerales;
     private MaterialButton btnVolver;
+    // Botones de navegación
+    private MaterialButton btnNavHome, btnNavNuevaMedicina, btnNavBotiquin, btnNavAjustes;
     private HistorialAdapter adapter;
-    private List<Medicamento> tratamientosConcluidos;
+    private List<Medicamento> tratamientosConcluidos = new ArrayList<>();
     private AuthService authService;
     private FirebaseService firebaseService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Ocultar ActionBar
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
+        
         setContentView(R.layout.activity_historial);
 
         // Inicializar servicios
@@ -52,6 +61,7 @@ public class HistorialActivity extends AppCompatActivity {
         configurarRecyclerView();
         cargarDatos();
         configurarListeners();
+        configurarNavegacion();
     }
 
     private void inicializarVistas() {
@@ -59,6 +69,12 @@ public class HistorialActivity extends AppCompatActivity {
         rvTratamientosConcluidos = findViewById(R.id.rvTratamientosConcluidos);
         tvEstadisticasGenerales = findViewById(R.id.tvEstadisticasGenerales);
         btnVolver = findViewById(R.id.btnVolver);
+        
+        // Botones de navegación
+        btnNavHome = findViewById(R.id.btnNavHome);
+        btnNavNuevaMedicina = findViewById(R.id.btnNavNuevaMedicina);
+        btnNavBotiquin = findViewById(R.id.btnNavBotiquin);
+        btnNavAjustes = findViewById(R.id.btnNavAjustes);
     }
 
     private void configurarGrafico() {
@@ -175,12 +191,48 @@ public class HistorialActivity extends AppCompatActivity {
     }
 
     private void configurarListeners() {
-        btnVolver.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        if (btnVolver != null) {
+            btnVolver.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    finish();
+                }
+            });
+        }
+    }
+    
+    private void configurarNavegacion() {
+        if (btnNavHome != null) {
+            btnNavHome.setOnClickListener(v -> {
+                Intent intent = new Intent(HistorialActivity.this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
                 finish();
-            }
-        });
+            });
+        }
+        
+        if (btnNavNuevaMedicina != null) {
+            btnNavNuevaMedicina.setOnClickListener(v -> {
+                Intent intent = new Intent(HistorialActivity.this, NuevaMedicinaActivity.class);
+                startActivity(intent);
+            });
+        }
+        
+        if (btnNavBotiquin != null) {
+            btnNavBotiquin.setOnClickListener(v -> {
+                Intent intent = new Intent(HistorialActivity.this, BotiquinActivity.class);
+                startActivity(intent);
+                finish();
+            });
+        }
+        
+        if (btnNavAjustes != null) {
+            btnNavAjustes.setOnClickListener(v -> {
+                Intent intent = new Intent(HistorialActivity.this, AjustesActivity.class);
+                startActivity(intent);
+                finish();
+            });
+        }
     }
 
     @Override

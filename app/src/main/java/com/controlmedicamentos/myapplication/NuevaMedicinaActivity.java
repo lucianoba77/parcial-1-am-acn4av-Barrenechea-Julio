@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -28,8 +29,10 @@ public class NuevaMedicinaActivity extends AppCompatActivity {
 
     private TextInputEditText etNombre, etAfeccion, etDetalles;
     private TextInputLayout tilNombre, tilAfeccion;
-    private MaterialButton btnGuardar, btnCancelar, btnSeleccionarColor, btnFechaVencimiento, btnCancelarAccion;
+    private MaterialButton btnGuardar, btnSeleccionarColor, btnFechaVencimiento, btnCancelarAccion;
     private MaterialButton btnSeleccionarHora;
+    // Botones de navegación
+    private MaterialButton btnNavHome, btnNavNuevaMedicina, btnNavBotiquin, btnNavAjustes;
     private android.widget.Spinner spinnerPresentacion;
     private TextInputEditText etTomasDiarias, etStockInicial, etDiasTratamiento;
     private TextInputLayout tilTomasDiarias, tilStockInicial, tilDiasTratamiento;
@@ -45,6 +48,12 @@ public class NuevaMedicinaActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Ocultar ActionBar
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
+        
         setContentView(R.layout.activity_nueva_medicina);
 
         // Inicializar servicios
@@ -60,6 +69,7 @@ public class NuevaMedicinaActivity extends AppCompatActivity {
         inicializarVistas();
         configurarSpinner();
         configurarListeners();
+        configurarNavegacion();
         
         // Verificar si se está editando un medicamento
         String medicamentoId = getIntent().getStringExtra("medicamento_id");
@@ -79,7 +89,6 @@ public class NuevaMedicinaActivity extends AppCompatActivity {
         tilAfeccion = findViewById(R.id.tilAfeccion);
 
         btnGuardar = findViewById(R.id.btnGuardar);
-        btnCancelar = findViewById(R.id.btnCancelar);
         btnCancelarAccion = findViewById(R.id.btnCancelarAccion);
         btnSeleccionarColor = findViewById(R.id.btnSeleccionarColor);
         btnFechaVencimiento = findViewById(R.id.btnFechaVencimiento);
@@ -93,6 +102,12 @@ public class NuevaMedicinaActivity extends AppCompatActivity {
         tilTomasDiarias = findViewById(R.id.tilTomasDiarias);
         tilStockInicial = findViewById(R.id.tilStockInicial);
         tilDiasTratamiento = findViewById(R.id.tilDiasTratamiento);
+        
+        // Botones de navegación
+        btnNavHome = findViewById(R.id.btnNavHome);
+        btnNavNuevaMedicina = findViewById(R.id.btnNavNuevaMedicina);
+        btnNavBotiquin = findViewById(R.id.btnNavBotiquin);
+        btnNavAjustes = findViewById(R.id.btnNavAjustes);
     }
 
     private void configurarListeners() {
@@ -100,13 +115,6 @@ public class NuevaMedicinaActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 guardarMedicamento();
-            }
-        });
-
-        btnCancelar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
             }
         });
 
@@ -138,6 +146,40 @@ public class NuevaMedicinaActivity extends AppCompatActivity {
             }
         });
     }
+    
+    private void configurarNavegacion() {
+        if (btnNavHome != null) {
+            btnNavHome.setOnClickListener(v -> {
+                Intent intent = new Intent(NuevaMedicinaActivity.this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+                finish();
+            });
+        }
+        
+        if (btnNavNuevaMedicina != null) {
+            btnNavNuevaMedicina.setOnClickListener(v -> {
+                // Ya estamos en nueva medicina
+            });
+        }
+        
+        if (btnNavBotiquin != null) {
+            btnNavBotiquin.setOnClickListener(v -> {
+                Intent intent = new Intent(NuevaMedicinaActivity.this, BotiquinActivity.class);
+                startActivity(intent);
+                finish();
+            });
+        }
+        
+        if (btnNavAjustes != null) {
+            btnNavAjustes.setOnClickListener(v -> {
+                Intent intent = new Intent(NuevaMedicinaActivity.this, AjustesActivity.class);
+                startActivity(intent);
+                finish();
+            });
+        }
+    }
+    
     private void configurarSpinner() {
         String[] presentaciones = {
                 "Comprimidos", "Cápsulas", "Jarabe", "Crema",

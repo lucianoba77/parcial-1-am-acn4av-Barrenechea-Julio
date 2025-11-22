@@ -1,6 +1,7 @@
 package com.controlmedicamentos.myapplication.adapters;
 
 import android.content.Context;
+import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,7 +13,9 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.controlmedicamentos.myapplication.R;
 import com.controlmedicamentos.myapplication.models.Medicamento;
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 
 public class BotiquinAdapter extends RecyclerView.Adapter<BotiquinAdapter.BotiquinViewHolder> {
 
@@ -23,13 +26,12 @@ public class BotiquinAdapter extends RecyclerView.Adapter<BotiquinAdapter.Botiqu
     public interface OnMedicamentoClickListener {
         void onEditarClick(Medicamento medicamento);
         void onEliminarClick(Medicamento medicamento);
-        void onAgregarStockClick(Medicamento medicamento);
-        void onRestarStockClick(Medicamento medicamento); // Para medicamentos ocasionales
+        void onTomeUnaClick(Medicamento medicamento); // Nuevo método para "Tomé una"
     }
 
     public BotiquinAdapter(Context context, List<Medicamento> medicamentos) {
         this.context = context;
-        this.medicamentos = medicamentos;
+        this.medicamentos = medicamentos != null ? medicamentos : new java.util.ArrayList<>();
     }
 
     public void setOnMedicamentoClickListener(OnMedicamentoClickListener listener) {
@@ -45,17 +47,19 @@ public class BotiquinAdapter extends RecyclerView.Adapter<BotiquinAdapter.Botiqu
 
     @Override
     public void onBindViewHolder(@NonNull BotiquinViewHolder holder, int position) {
-        Medicamento medicamento = medicamentos.get(position);
-        holder.bind(medicamento);
+        if (medicamentos != null && position < medicamentos.size()) {
+            Medicamento medicamento = medicamentos.get(position);
+            holder.bind(medicamento);
+        }
     }
 
     @Override
     public int getItemCount() {
-        return medicamentos.size();
+        return medicamentos != null ? medicamentos.size() : 0;
     }
 
     public void actualizarMedicamentos(List<Medicamento> nuevosMedicamentos) {
-        this.medicamentos = nuevosMedicamentos;
+        this.medicamentos = nuevosMedicamentos != null ? nuevosMedicamentos : new java.util.ArrayList<>();
         notifyDataSetChanged();
     }
 
@@ -66,10 +70,10 @@ public class BotiquinAdapter extends RecyclerView.Adapter<BotiquinAdapter.Botiqu
         private TextView tvPresentacion;
         private TextView tvStock;
         private TextView tvEstado;
+        private TextView tvFechaVencimiento;
+        private MaterialButton btnTomeUna;
         private MaterialButton btnEditar;
         private MaterialButton btnEliminar;
-        private MaterialButton btnAgregarStock;
-        private MaterialButton btnRestarStock;
 
         public BotiquinViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -79,14 +83,14 @@ public class BotiquinAdapter extends RecyclerView.Adapter<BotiquinAdapter.Botiqu
             tvPresentacion = itemView.findViewById(R.id.tvPresentacion);
             tvStock = itemView.findViewById(R.id.tvStock);
             tvEstado = itemView.findViewById(R.id.tvEstado);
+            tvFechaVencimiento = itemView.findViewById(R.id.tvFechaVencimiento);
+            btnTomeUna = itemView.findViewById(R.id.btnTomeUna);
             btnEditar = itemView.findViewById(R.id.btnEditar);
             btnEliminar = itemView.findViewById(R.id.btnEliminar);
-            btnAgregarStock = itemView.findViewById(R.id.btnAgregarStock);
-            btnRestarStock = itemView.findViewById(R.id.btnRestarStock);
         }
 
         public void bind(Medicamento medicamento) {
-            // Configurar ícono
+            // Configurar ícono del tipo de presentación
             ivIcono.setImageResource(medicamento.getIconoPresentacion());
 
             // Configurar nombre
@@ -95,38 +99,61 @@ public class BotiquinAdapter extends RecyclerView.Adapter<BotiquinAdapter.Botiqu
             // Configurar presentación
             tvPresentacion.setText(medicamento.getPresentacion());
 
-            // Configurar stock
-            String stockText = "Stock: " + medicamento.getStockActual() + "/" + medicamento.getStockInicial();
-            tvStock.setText(stockText);
+            // Configurar stock (solo si tiene stock y no está vencido)
+            if (medicamento.getStockActual() > 0 && !medicamento.estaVencido()) {
+                String stockText = "Stock: " + medicamento.getStockActual();
+                if (medicamento.getStockInicial() > 0) {
+                    stockText += "/" + medicamento.getStockInicial();
+                }
+                tvStock.setText(stockText);
+                tvStock.setVisibility(TextView.VISIBLE);
+            } else {
+                tvStock.setVisibility(TextView.GONE);
+            }
 
-            // Configurar estado
-            if (medicamento.estaVencido()) {
+            // Configurar estado y fecha de vencimiento
+            boolean estaVencido = medicamento.estaVencido();
+            if (estaVencido) {
                 tvEstado.setText("Vencido");
                 tvEstado.setTextColor(context.getColor(R.color.error));
-                btnEliminar.setVisibility(View.VISIBLE);
-                btnEditar.setVisibility(View.GONE);
-                btnAgregarStock.setVisibility(View.GONE);
-                btnRestarStock.setVisibility(View.GONE);
-            } else if (medicamento.isPausado()) {
-                tvEstado.setText("Pausado");
-                tvEstado.setTextColor(context.getColor(R.color.warning));
+                tvFechaVencimiento.setVisibility(TextView.GONE);
+                // Si está vencido, solo mostrar botón Eliminar
+                btnTomeUna.setVisibility(View.GONE);
                 btnEditar.setVisibility(View.VISIBLE);
                 btnEliminar.setVisibility(View.VISIBLE);
-                btnAgregarStock.setVisibility(View.GONE);
-                btnRestarStock.setVisibility(View.GONE);
             } else {
-                tvEstado.setText("Activo");
-                tvEstado.setTextColor(context.getColor(R.color.success));
-                btnEditar.setVisibility(View.VISIBLE);
-                btnEliminar.setVisibility(View.VISIBLE);
-                btnAgregarStock.setVisibility(View.VISIBLE);
-                
-                // Mostrar botón de restar stock solo para medicamentos ocasionales con stock > 0
-                // Consistente con React: BotiquinScreen.jsx líneas 144-160
-                if (medicamento.getTomasDiarias() == 0 && medicamento.getStockActual() > 0) {
-                    btnRestarStock.setVisibility(View.VISIBLE);
+                // Si tiene stock y no está vencido, mostrar "Activo"
+                if (medicamento.getStockActual() > 0) {
+                    tvEstado.setText("Activo");
+                    tvEstado.setTextColor(context.getColor(R.color.success));
+                    
+                    // Mostrar fecha de vencimiento si existe
+                    if (medicamento.getFechaVencimiento() != null) {
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                        String fechaVencimiento = dateFormat.format(medicamento.getFechaVencimiento());
+                        tvFechaVencimiento.setText("Vence: " + fechaVencimiento);
+                        tvFechaVencimiento.setVisibility(TextView.VISIBLE);
+                    } else {
+                        tvFechaVencimiento.setVisibility(TextView.GONE);
+                    }
+                    
+                    // Mostrar botón "Tomé una" solo para medicamentos ocasionales con stock > 0
+                    if (medicamento.getTomasDiarias() == 0 && medicamento.getStockActual() > 0) {
+                        btnTomeUna.setVisibility(View.VISIBLE);
+                    } else {
+                        btnTomeUna.setVisibility(View.GONE);
+                    }
+                    
+                    btnEditar.setVisibility(View.VISIBLE);
+                    btnEliminar.setVisibility(View.VISIBLE);
                 } else {
-                    btnRestarStock.setVisibility(View.GONE);
+                    // Sin stock
+                    tvEstado.setText("Sin stock");
+                    tvEstado.setTextColor(context.getColor(R.color.warning));
+                    tvFechaVencimiento.setVisibility(TextView.GONE);
+                    btnTomeUna.setVisibility(View.GONE);
+                    btnEditar.setVisibility(View.VISIBLE);
+                    btnEliminar.setVisibility(View.VISIBLE);
                 }
             }
 
@@ -134,6 +161,12 @@ public class BotiquinAdapter extends RecyclerView.Adapter<BotiquinAdapter.Botiqu
             cardMedicamento.setCardBackgroundColor(medicamento.getColor());
 
             // Configurar listeners
+            btnTomeUna.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onTomeUnaClick(medicamento);
+                }
+            });
+
             btnEditar.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onEditarClick(medicamento);
@@ -143,18 +176,6 @@ public class BotiquinAdapter extends RecyclerView.Adapter<BotiquinAdapter.Botiqu
             btnEliminar.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onEliminarClick(medicamento);
-                }
-            });
-
-            btnAgregarStock.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onAgregarStockClick(medicamento);
-                }
-            });
-
-            btnRestarStock.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onRestarStockClick(medicamento);
                 }
             });
         }

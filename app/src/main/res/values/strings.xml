@@ -22,9 +22,10 @@
     <!-- Main Activity -->
     <string name="main_greeting">¡Hola, %s!</string>
     <string name="main_subtitle">Mantén tu tratamiento al día</string>
-    <string name="main_title">Medicamentos de hoy</string>
+    <string name="main_title">Tus medicamentos de hoy</string>
 
     <!-- Navigation -->
+    <string name="nav_home">Inicio</string>
     <string name="nav_new_medicine">Nueva\nMedicina</string>
     <string name="nav_medicine_cabinet">Botiquín</string>
     <string name="nav_history">Historial</string>

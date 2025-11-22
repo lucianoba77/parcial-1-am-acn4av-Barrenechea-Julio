@@ -46,4 +46,11 @@
     <color name="day_missed">#E91E63</color>
     <color name="day_neutral">#9E9E9E</color>
 
+    <!-- Colores para barra de navegación (tonos más sutiles) -->
+    <color name="nav_home">#6C757D</color>
+    <color name="nav_add">#6C757D</color>
+    <color name="nav_cabinet">#6C757D</color>
+    <color name="nav_settings">#6C757D</color>
+    <color name="nav_active">#2196F3</color>
+
 </resources>

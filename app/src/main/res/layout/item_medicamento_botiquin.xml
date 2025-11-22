@@ -12,113 +12,141 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="@dimen/padding_medium"
-        android:gravity="center_vertical">
+        android:padding="@dimen/padding_medium">
 
-        <!-- Ícono del medicamento -->
-        <ImageView
-            android:id="@+id/ivIcono"
-            android:layout_width="@dimen/icon_size_large"
-            android:layout_height="@dimen/icon_size_large"
-            android:layout_marginEnd="@dimen/margin_medium"
-            android:src="@drawable/ic_medicamento"
-            android:contentDescription="@string/medicine_icon" />
-
-        <!-- Información del medicamento -->
+        <!-- Información del medicamento (izquierda) -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:layout_marginEnd="@dimen/margin_medium">
 
-            <TextView
-                android:id="@+id/tvNombre"
+            <!-- Fila superior: Ícono y nombre -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/medicine_name"
-                android:textSize="@dimen/text_size_medium"
-                android:textColor="@color/white"
-                android:textStyle="bold" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="@dimen/margin_small">
 
+                <!-- Ícono del tipo de presentación -->
+                <ImageView
+                    android:id="@+id/ivIcono"
+                    android:layout_width="@dimen/icon_size_large"
+                    android:layout_height="@dimen/icon_size_large"
+                    android:layout_marginEnd="@dimen/margin_medium"
+                    android:src="@drawable/ic_medicamento"
+                    android:contentDescription="@string/medicine_icon" />
+
+                <!-- Nombre del medicamento -->
+                <TextView
+                    android:id="@+id/tvNombre"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/medicine_name"
+                    android:textSize="18sp"
+                    android:textColor="#333333"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <!-- Presentación -->
             <TextView
                 android:id="@+id/tvPresentacion"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/medicine_presentation"
-                android:textSize="@dimen/text_size_small"
-                android:textColor="@color/white"
-                android:layout_marginTop="@dimen/margin_tiny" />
+                android:textSize="16sp"
+                android:textColor="#555555"
+                android:layout_marginBottom="@dimen/margin_small" />
 
+            <!-- Stock -->
             <TextView
                 android:id="@+id/tvStock"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/medicine_stock"
-                android:textSize="@dimen/text_size_small"
-                android:textColor="@color/white"
-                android:layout_marginTop="@dimen/margin_tiny" />
+                android:textSize="15sp"
+                android:textColor="#555555"
+                android:layout_marginBottom="@dimen/margin_tiny"
+                android:visibility="gone" />
 
+            <!-- Estado (Activo/Vencido) -->
             <TextView
                 android:id="@+id/tvEstado"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/medicine_status"
-                android:textSize="@dimen/text_size_small"
+                android:textSize="15sp"
                 android:textStyle="bold"
-                android:layout_marginTop="@dimen/margin_tiny" />
+                android:layout_marginBottom="@dimen/margin_tiny" />
+
+            <!-- Fecha de vencimiento (solo si no está vencido) -->
+            <TextView
+                android:id="@+id/tvFechaVencimiento"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="14sp"
+                android:textColor="#555555"
+                android:visibility="gone" />
 
         </LinearLayout>
 
-        <!-- Botones de acción -->
+        <!-- Botones (derecha) -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginStart="@dimen/margin_medium">
+            android:gravity="center">
 
+            <!-- Botón grande "Tomé una" (cuadrado) -->
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnEditar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/btn_edit"
-                android:textSize="@dimen/text_size_small"
-                android:textColor="@color/white"
-                android:backgroundTint="@color/primary_dark"
-                android:layout_marginBottom="@dimen/margin_tiny"
-                style="@style/Widget.Material3.Button.TextButton" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnRestarStock"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="− Restar"
-                android:textSize="@dimen/text_size_small"
-                android:textColor="@color/white"
-                android:backgroundTint="@color/warning"
-                android:layout_marginBottom="@dimen/margin_tiny"
-                android:visibility="gone"
-                style="@style/Widget.Material3.Button.TextButton" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAgregarStock"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/btn_add_stock"
-                android:textSize="@dimen/text_size_small"
+                android:id="@+id/btnTomeUna"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:text="Tomé una"
+                android:textSize="13sp"
                 android:textColor="@color/white"
                 android:backgroundTint="@color/success"
-                android:layout_marginBottom="@dimen/margin_tiny"
-                style="@style/Widget.Material3.Button.TextButton" />
+                android:visibility="gone"
+                style="@style/Widget.Material3.Button"
+                android:layout_marginBottom="@dimen/margin_small" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnEliminar"
+            <!-- Botones pequeños: Editar y Eliminar -->
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/btn_delete"
-                android:textSize="@dimen/text_size_small"
-                android:textColor="@color/white"
-                android:backgroundTint="@color/error"
-                style="@style/Widget.Material3.Button.TextButton" />
+                android:orientation="vertical">
+
+                <!-- Botón Editar -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnEditar"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="40dp"
+                    android:text="@string/btn_edit"
+                    android:textSize="12sp"
+                    android:textColor="@color/white"
+                    android:backgroundTint="@color/primary"
+                    android:layout_marginBottom="@dimen/margin_tiny"
+                    style="@style/Widget.Material3.Button" />
+
+                <!-- Botón Eliminar -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnEliminar"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="40dp"
+                    android:text="@string/btn_delete"
+                    android:textSize="12sp"
+                    android:textColor="@color/white"
+                    android:backgroundTint="@color/error"
+                    style="@style/Widget.Material3.Button" />
+
+            </LinearLayout>
 
         </LinearLayout>
 

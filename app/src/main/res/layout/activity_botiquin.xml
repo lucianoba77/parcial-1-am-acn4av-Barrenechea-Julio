@@ -1,59 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/background">
 
-    <!-- Header con título y botón volver -->
-    <LinearLayout
+    <!-- ScrollView para el contenido -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/barraNavegacion"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Header con título -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="@dimen/padding_medium"
+                android:paddingTop="?attr/actionBarSize"
+                android:background="@color/primary"
+                android:gravity="center_vertical"
+                android:fitsSystemWindows="true">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/botiquin_title"
+                    android:textSize="@dimen/text_size_large"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    android:gravity="center" />
+
+            </LinearLayout>
+
+            <!-- Sección: Medicamentos con tratamiento -->
+            <TextView
+                android:id="@+id/tvTituloTratamiento"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tratamientos Programados"
+                android:textSize="@dimen/text_size_large"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                android:padding="@dimen/padding_medium"
+                android:background="@color/surface"
+                android:visibility="gone" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvMedicamentosTratamiento"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/padding_small"
+                android:nestedScrollingEnabled="false"
+                android:visibility="gone" />
+
+            <!-- Sección: Medicamentos ocasionales -->
+            <TextView
+                android:id="@+id/tvTituloOcasionales"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Medicamentos Ocasionales"
+                android:textSize="@dimen/text_size_large"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                android:padding="@dimen/padding_medium"
+                android:background="@color/surface"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:visibility="gone" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvMedicamentosOcasionales"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/padding_small"
+                android:nestedScrollingEnabled="false"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <!-- Barra de navegación inferior -->
+    <include
+        android:id="@+id/barraNavegacion"
+        layout="@layout/nav_bar_inferior"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="@dimen/padding_medium"
-        android:background="@color/primary"
-        android:gravity="center_vertical">
+        android:layout_alignParentBottom="true" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnVolver"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/btn_back"
-            android:textColor="@color/white"
-            android:backgroundTint="@color/primary_dark"
-            android:layout_marginEnd="@dimen/margin_medium" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/botiquin_title"
-            android:textSize="@dimen/text_size_large"
-            android:textColor="@color/white"
-            android:textStyle="bold"
-            android:gravity="center" />
-
-    </LinearLayout>
-
-    <!-- Lista de medicamentos -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvMedicamentos"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:padding="@dimen/padding_small"
-        android:clipToPadding="false" />
-
-    <!-- Botón flotante para nueva medicina -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabNuevaMedicina"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|bottom"
-        android:layout_margin="@dimen/margin_large"
-        android:src="@drawable/ic_add"
-        app:backgroundTint="@color/accent"
-        app:tint="@color/white" />
-
-</LinearLayout>
+</RelativeLayout>
