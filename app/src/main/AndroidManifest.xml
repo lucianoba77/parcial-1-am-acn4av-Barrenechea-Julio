@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:allowBackup="true"
@@ -58,6 +59,12 @@
             android:exported="false"
             android:theme="@style/Theme.ControlMedicamentos" />
 
+        <!-- Pantalla detalles de medicamento -->
+        <activity
+            android:name=".DetallesMedicamentoActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ControlMedicamentos" />
+
         <!-- Pantalla ajustes -->
         <activity
             android:name=".AjustesActivity"
@@ -95,6 +102,23 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
+
+        <!-- Receiver para acciones de tomas desde notificaciones -->
+        <receiver
+            android:name=".receivers.TomaActionReceiver"
+            android:exported="false"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="com.controlmedicamentos.myapplication.POSPONER" />
+                <action android:name="com.controlmedicamentos.myapplication.MARCAR_TOMADA" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Servicio para verificar estados de tomas periódicamente -->
+        <service
+            android:name=".services.TomaStateCheckerService"
+            android:enabled="true"
+            android:exported="false" />
 
     </application>
 

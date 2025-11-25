@@ -117,12 +117,6 @@ public class LoginActivity extends AppCompatActivity {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
 
-        // Logging detallado para debug
-        Log.d(TAG, "=== Intento de Login ===");
-        Log.d(TAG, "Email ingresado: " + email);
-        Log.d(TAG, "Longitud de contraseña: " + password.length());
-        Log.d(TAG, "Contraseña contiene espacios: " + password.contains(" "));
-
         // Validar campos
         if (!validarCampos(email, password)) {
             return;
@@ -142,7 +136,6 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onSuccess(FirebaseUser user) {
                 mostrarProgreso(false);
-                Log.d(TAG, "Login exitoso. Usuario UID: " + (user != null ? user.getUid() : "null"));
                 Toast.makeText(LoginActivity.this, "¡Bienvenido!", Toast.LENGTH_SHORT).show();
                 irAMainActivity();
             }
@@ -151,32 +144,11 @@ public class LoginActivity extends AppCompatActivity {
             public void onError(Exception exception) {
                 mostrarProgreso(false);
                 
-                // Logging detallado del error
                 if (exception != null) {
-                    Log.e(TAG, "=== Error en Login ===");
-                    Log.e(TAG, "Tipo de excepción: " + exception.getClass().getName());
-                    Log.e(TAG, "Mensaje de error: " + exception.getMessage());
-                    
-                    if (exception instanceof com.google.firebase.auth.FirebaseAuthException) {
-                        com.google.firebase.auth.FirebaseAuthException authException = 
-                            (com.google.firebase.auth.FirebaseAuthException) exception;
-                        String errorCode = authException.getErrorCode();
-                        Log.e(TAG, "Código de error Firebase: " + errorCode);
-                        
-                        // Mostrar el código de error también en el mensaje para debug
-                        String mensaje = obtenerMensajeErrorLogin(exception);
-                        Log.e(TAG, "Mensaje traducido: " + mensaje);
-                        
-                        // Para debug: mostrar el código de error en el Toast también
-                        Toast.makeText(LoginActivity.this, mensaje + "\n(Código: " + errorCode + ")", 
-                            Toast.LENGTH_LONG).show();
-                    } else {
-                        Log.e(TAG, "Error completo: ", exception);
-                        String mensaje = obtenerMensajeErrorLogin(exception);
-                        Toast.makeText(LoginActivity.this, mensaje, Toast.LENGTH_LONG).show();
-                    }
+                    Log.e(TAG, "Error en login", exception);
+                    String mensaje = obtenerMensajeErrorLogin(exception);
+                    Toast.makeText(LoginActivity.this, mensaje, Toast.LENGTH_LONG).show();
                 } else {
-                    Log.e(TAG, "Error desconocido: exception es null");
                     Toast.makeText(LoginActivity.this, "Error desconocido al iniciar sesión", 
                         Toast.LENGTH_LONG).show();
                 }

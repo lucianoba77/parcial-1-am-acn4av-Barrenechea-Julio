@@ -20,19 +20,34 @@ La aplicación está diseñada para ayudar a los usuarios a mantener la adherenc
 - **Eliminación de Medicamentos**: Eliminación segura de medicamentos del sistema
 - **Gestión de Stock**: Control de stock inicial y actual, con alertas cuando el stock está bajo
 - **Colores Personalizados**: Asignación automática de colores únicos para facilitar la identificación visual
+- **Vista Detallada**: Pantalla de detalles completa con información del medicamento, historial de tomas y gráficos de adherencia
+- **Tratamientos Crónicos y Programados**: Soporte para medicamentos de uso continuo o con duración limitada
+- **Medicamentos Ocasionales**: Gestión de medicamentos que no requieren horarios fijos
 
 ### Recordatorios y Notificaciones
 - **Alarmas Programadas**: Sistema de alarmas que programa recordatorios para los próximos 30 días
 - **Notificaciones Push**: Notificaciones locales que alertan al usuario sobre las tomas programadas
 - **Reprogramación Automática**: Las alarmas se reprograman automáticamente después de reiniciar el dispositivo
 - **Configuración de Notificaciones**: Control de volumen, vibración y sonido de las notificaciones
+- **Acciones Rápidas desde Notificaciones**: Posibilidad de marcar tomas como realizadas o posponerlas directamente desde la notificación
+- **Seguimiento de Estado de Tomas**: Sistema que rastrea el estado de cada toma programada (pendiente, tomada, omitida)
+- **Posposición de Tomas**: Permite posponer una toma hasta 3 veces antes de considerarla omitida
+
+### Seguimiento y Adherencia
+- **Seguimiento de Tomas**: Sistema que rastrea el estado de cada toma programada (pendiente, tomada, omitida)
+- **Cálculo de Adherencia**: Métricas avanzadas de adherencia con cálculos semanales y mensuales
+- **Gráficos de Adherencia**: Visualización gráfica de la adherencia al tratamiento por medicamento
+- **Resumen de Adherencia**: Porcentajes de cumplimiento y estadísticas de tomas realizadas vs esperadas
+- **Historial Detallado**: Registro completo de todas las tomas con fecha, hora y estado
+- **Posposición de Tomas**: Permite posponer una toma hasta 3 veces antes de considerarla omitida
 
 ### Sincronización con Google Calendar
-- **Integración OAuth 2.0**: Autenticación segura con Google Calendar mediante flujo OAuth implícito
+- **Integración OAuth 2.0**: Autenticación segura con Google Calendar mediante Google Sign-In para Android
 - **Creación Automática de Eventos**: Los eventos de toma de medicamentos se crean automáticamente en Google Calendar
 - **Actualización de Eventos**: Los eventos se actualizan cuando se modifican los horarios de los medicamentos
 - **Eliminación de Eventos**: Los eventos se eliminan cuando se elimina un medicamento
 - **Recordatorios en Calendar**: Los eventos incluyen recordatorios 15 y 5 minutos antes de cada toma
+- **Modo de Prueba**: La aplicación está en desarrollo con usuarios de prueba configurados. El mensaje de advertencia de Google es normal y esperado durante esta fase
 
 ## Descripción de Activities
 
@@ -118,12 +133,32 @@ La aplicación está diseñada para ayudar a los usuarios a mantener la adherenc
 - Gráfico de barras mostrando adherencia al tratamiento
 - Estadísticas generales (total de medicamentos, tratamientos concluidos)
 - Lista de tratamientos concluidos
-- Cálculo de porcentaje de adherencia (funcionalidad básica implementada)
+- Cálculo de porcentaje de adherencia con métricas avanzadas
+- Plan de adherencia personalizada por medicamento
+- Gráficos semanales y mensuales de adherencia
 
 **Interacciones**:
 - El usuario puede visualizar sus estadísticas de adherencia
 - El gráfico muestra información visual sobre el cumplimiento de los tratamientos
 - La lista de tratamientos concluidos muestra medicamentos que ya no están activos
+- Selección de medicamentos para ver planes de adherencia detallados
+
+### DetallesMedicamentoActivity
+**Propósito**: Pantalla detallada de un medicamento con información completa, historial y estadísticas.
+
+**Funcionalidades**:
+- Visualización completa de información del medicamento (nombre, presentación, afección, horarios, stock, estado)
+- Historial de tomas con estado (tomada, omitida, pendiente)
+- Gráfico de adherencia semanal
+- Resumen de adherencia con porcentaje y tomas realizadas
+- Navegación a edición del medicamento
+- Cálculo automático de métricas de adherencia
+
+**Interacciones**:
+- El usuario puede ver todos los detalles de un medicamento específico
+- El historial muestra todas las tomas registradas con fecha y hora
+- El gráfico visualiza la adherencia semanal
+- El botón "Editar" permite modificar el medicamento
 
 ### AjustesActivity
 **Propósito**: Configuración de perfil de usuario y preferencias de la aplicación.
@@ -134,16 +169,19 @@ La aplicación está diseñada para ayudar a los usuarios a mantener la adherenc
 - Configuración de volumen y repeticiones de notificaciones
 - Configuración de días de antelación para alertas de stock
 - Conexión y desconexión de Google Calendar
+- Mensaje informativo sobre el modo de prueba de Google Calendar
 - Cerrar sesión
-- Eliminación de cuenta (funcionalidad en desarrollo)
+- Eliminación de cuenta con confirmación y reautenticación
 
 **Interacciones**:
 - El usuario puede modificar su información personal y guardar los cambios
 - Los switches permiten activar/desactivar diferentes tipos de notificaciones
 - Los SeekBars permiten ajustar volumen y número de repeticiones
-- El botón "Conectar Google Calendar" inicia el flujo OAuth
+- El botón "Conectar Google Calendar" inicia el flujo OAuth con Google Sign-In
+- Durante el desarrollo, se muestra un mensaje informativo sobre el mensaje de advertencia de Google
 - El botón "Desconectar" elimina la conexión con Google Calendar
 - El botón "Cerrar Sesión" cierra la sesión actual y redirige a LoginActivity
+- El botón "Eliminar Cuenta" permite eliminar permanentemente la cuenta y todos los datos asociados
 
 ### GoogleCalendarCallbackActivity
 **Propósito**: Maneja el callback del flujo OAuth 2.0 para Google Calendar.
@@ -190,7 +228,8 @@ La aplicación está diseñada para ayudar a los usuarios a mantener la adherenc
 **Uso**: Sincronización de eventos de toma de medicamentos con Google Calendar.
 
 **Implementación**:
-- Se utiliza OAuth 2.0 flujo implícito para obtener el `access_token`
+- Se utiliza Google Sign-In para Android con scope de Calendar API
+- Se obtiene un `serverAuthCode` que puede intercambiarse por `access_token` (requiere backend)
 - Se realizan peticiones HTTP REST a la API de Google Calendar usando OkHttp
 - Los eventos se crean, actualizan y eliminan mediante peticiones POST, PUT y DELETE
 
@@ -200,18 +239,24 @@ La aplicación está diseñada para ayudar a los usuarios a mantener la adherenc
 - `DELETE /calendar/v3/calendars/primary/events/{eventId}` - Eliminar evento
 
 **Seguridad**:
-- El `access_token` se almacena de forma segura en Firestore
+- El `auth_code` o `access_token` se almacena de forma segura en Firestore
 - Se verifica la expiración del token antes de realizar peticiones
 - Las peticiones incluyen el header `Authorization: Bearer {access_token}`
 - Se manejan errores de autenticación y se solicita re-autenticación cuando es necesario
 
 **Flujo OAuth**:
 1. El usuario presiona "Conectar Google Calendar" en AjustesActivity
-2. Se abre Custom Tabs con la URL de autorización de Google
-3. El usuario autoriza la aplicación
-4. Google redirige a `GoogleCalendarCallbackActivity` con el `access_token` en el fragment
-5. Se extrae el token y se guarda en Firestore
-6. Se redirige de vuelta a AjustesActivity
+2. Se inicia Google Sign-In con scope de Calendar API
+3. El usuario autoriza la aplicación (puede aparecer mensaje de advertencia durante desarrollo)
+4. Se obtiene el `serverAuthCode` del resultado de Google Sign-In
+5. El código se guarda en Firestore para uso futuro
+6. La UI se actualiza para mostrar el estado de conexión
+
+**Nota sobre Desarrollo**:
+- Durante el desarrollo, Google mostrará un mensaje de advertencia indicando que la app no ha sido verificada
+- Esto es normal y esperado para aplicaciones en desarrollo
+- Los usuarios de prueba configurados en Google Cloud Console pueden hacer clic en "Continuar" para proceder
+- La aplicación incluye un mensaje informativo en la UI explicando este comportamiento
 
 ## Seguridad Implementada
 
@@ -238,37 +283,77 @@ La aplicación está diseñada para ayudar a los usuarios a mantener la adherenc
 
 ```
 app/src/main/java/com/controlmedicamentos/myapplication/
-├── activities/
+├── Activities/
 │   ├── LoginActivity.java
 │   ├── MainActivity.java
 │   ├── NuevaMedicinaActivity.java
 │   ├── BotiquinActivity.java
 │   ├── HistorialActivity.java
 │   ├── AjustesActivity.java
+│   ├── DetallesMedicamentoActivity.java
 │   └── GoogleCalendarCallbackActivity.java
 ├── adapters/
 │   ├── MedicamentoAdapter.java
 │   ├── BotiquinAdapter.java
-│   └── HistorialAdapter.java
+│   ├── HistorialAdapter.java
+│   └── TomaAdapter.java
 ├── models/
 │   ├── Medicamento.java
 │   ├── Usuario.java
-│   └── Toma.java
+│   ├── Toma.java
+│   ├── TomaProgramada.java
+│   ├── AdherenciaIntervalo.java
+│   └── AdherenciaResumen.java
 ├── services/
 │   ├── AuthService.java
 │   ├── FirebaseService.java
 │   ├── GoogleCalendarAuthService.java
 │   ├── GoogleCalendarService.java
-│   └── NotificationService.java
+│   ├── NotificationService.java
+│   ├── TomaTrackingService.java
+│   └── TomaStateCheckerService.java
 ├── receivers/
 │   ├── AlarmReceiver.java
-│   └── BootReceiver.java
+│   ├── BootReceiver.java
+│   └── TomaActionReceiver.java
 └── utils/
     ├── AlarmScheduler.java
     ├── ColorUtils.java
     ├── NetworkUtils.java
-    └── StockAlertUtils.java
+    ├── StockAlertUtils.java
+    └── AdherenciaCalculator.java
 ```
+
+## Componentes Técnicos Principales
+
+### Servicios
+- **AuthService**: Maneja autenticación con Firebase y Google Sign-In
+- **FirebaseService**: Servicio principal para operaciones CRUD con Firestore
+- **GoogleCalendarAuthService**: Gestiona la autenticación OAuth con Google Calendar
+- **GoogleCalendarService**: Realiza operaciones con la API de Google Calendar
+- **NotificationService**: Gestiona las notificaciones push locales
+- **TomaTrackingService**: Rastrea el estado de las tomas programadas usando SharedPreferences
+- **TomaStateCheckerService**: Servicio en segundo plano que verifica el estado de las tomas
+
+### Modelos de Datos
+- **Medicamento**: Modelo principal con información completa del medicamento
+- **Usuario**: Información del perfil de usuario
+- **Toma**: Registro de una toma realizada u omitida
+- **TomaProgramada**: Representa una toma programada con su estado (pendiente, tomada, omitida)
+- **AdherenciaIntervalo**: Métricas de adherencia para un intervalo de tiempo específico
+- **AdherenciaResumen**: Resumen general de adherencia con porcentajes y estadísticas
+
+### Utilidades
+- **AlarmScheduler**: Programa y gestiona las alarmas de recordatorios
+- **AdherenciaCalculator**: Calcula métricas de adherencia en diferentes rangos temporales
+- **ColorUtils**: Utilidades para asignación y gestión de colores
+- **NetworkUtils**: Verificación de conectividad de red
+- **StockAlertUtils**: Gestión de alertas de stock bajo
+
+### Receivers
+- **AlarmReceiver**: Recibe y procesa las alarmas programadas
+- **BootReceiver**: Reprograma las alarmas después de reiniciar el dispositivo
+- **TomaActionReceiver**: Maneja las acciones rápidas desde las notificaciones (tomar, posponer)
 
 ## Tecnologías Utilizadas
 
@@ -281,6 +366,7 @@ app/src/main/java/com/controlmedicamentos/myapplication/
 - **OkHttp**: Cliente HTTP para peticiones a APIs
 - **MPAndroidChart**: Librería para gráficos
 - **Material Design**: Componentes de UI modernos
+- **SharedPreferences**: Almacenamiento local para estado de tomas programadas
 
 ## Requisitos del Sistema
 
@@ -296,6 +382,10 @@ app/src/main/java/com/controlmedicamentos/myapplication/
 3. Configurar las reglas de Firestore según `INSTRUCCIONES_FIREBASE.md`
 4. Habilitar Authentication en Firebase Console
 5. Configurar OAuth 2.0 en Google Cloud Console para Google Calendar
+6. Agregar usuarios de prueba en Google Cloud Console (OAuth consent screen > Test users)
+7. Configurar el Web Client ID en `app/src/main/res/values/strings.xml` (ya incluido en `google-services.json`)
+
+**Nota**: Durante el desarrollo, asegúrate de tener usuarios de prueba configurados en Google Cloud Console para poder usar Google Calendar sin problemas.
 
 ## Notas de Desarrollo
 
@@ -303,4 +393,10 @@ app/src/main/java/com/controlmedicamentos/myapplication/
 - Las alarmas se programan para los próximos 30 días para evitar exceder límites del sistema
 - Los eventos de Google Calendar se crean automáticamente al guardar medicamentos
 - La sincronización con Google Calendar es opcional y se puede activar/desactivar desde Ajustes
+- **Estado de Desarrollo**: La aplicación está actualmente en período de desarrollo y construcción
+- **Usuarios de Prueba**: Se han configurado usuarios de prueba en Google Cloud Console para OAuth
+- **Advertencia de Google**: Durante el desarrollo, Google mostrará un mensaje de advertencia al conectar Google Calendar. Esto es normal y esperado. Los usuarios de prueba autorizados pueden hacer clic en "Continuar" para proceder
+- **Seguimiento de Tomas**: El sistema rastrea el estado de cada toma programada (pendiente, tomada, omitida) usando SharedPreferences y servicios en segundo plano
+- **Cálculo de Adherencia**: Se implementó un sistema avanzado de cálculo de adherencia con métricas semanales y mensuales
+- **Notificaciones Accionables**: Las notificaciones incluyen botones de acción rápida para marcar tomas o posponerlas
 

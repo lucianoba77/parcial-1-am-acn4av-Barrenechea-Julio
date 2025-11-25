@@ -71,18 +71,41 @@
 
         </LinearLayout>
 
-        <!-- Botón Tomado -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnTomado"
+        <!-- Botones de acción -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/medicine_taken"
-            android:textSize="@dimen/text_size_medium"
-            android:textColor="@color/white"
-            android:backgroundTint="@color/success"
-            android:minWidth="80dp"
-            android:minHeight="40dp"
-            style="@style/MedicineButton" />
+            android:orientation="vertical"
+            android:gravity="center">
+            
+            <!-- Botón Posponer (visible solo cuando hay tomas en alerta) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPosponer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Posponer"
+                android:textSize="@dimen/text_size_small"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/warning"
+                android:minWidth="80dp"
+                android:minHeight="36dp"
+                android:visibility="gone"
+                android:layout_marginBottom="@dimen/margin_small"
+                style="@style/MedicineButton" />
+            
+            <!-- Botón Tomado -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTomado"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/medicine_taken"
+                android:textSize="@dimen/text_size_medium"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/success"
+                android:minWidth="80dp"
+                android:minHeight="40dp"
+                style="@style/MedicineButton" />
+        </LinearLayout>
 
     </LinearLayout>
 

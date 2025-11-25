@@ -62,6 +62,9 @@
     <string name="msg_treatment_completed">¡Tratamiento de %1$s completado!</string>
     <string name="msg_stock_low">Stock bajo: %1$s</string>
     <string name="msg_medicine_expired">Medicamento vencido: %1$s</string>
+    <string name="msg_toma_pospuesta">Toma pospuesta 10 minutos. Quedan %1$d posposiciones disponibles</string>
+    <string name="msg_toma_no_posponible">No se puede posponer más. Máximo 3 posposiciones alcanzado. La toma se considera omitida.</string>
+    <string name="btn_posponer">Posponer</string>
 
     <!-- Buttons -->
     <string name="btn_save">Guardar</string>
@@ -121,6 +124,26 @@
     <string name="hint_stock_example">Ej: 30</string>
     <string name="hint_treatment_days_example">-1 para crónico</string>
 
+    <!-- Detalles de Medicamento -->
+    <string name="medicine_details_title">Detalles del Medicamento</string>
+    <string name="adherence_summary_title">Resumen de Adherencia</string>
+    <string name="takes_history_title">Historial de Tomas</string>
+    <string name="no_takes_history">No hay tomas registradas para este medicamento</string>
+    <string name="condition_label">Afección: %1$s</string>
+    <string name="schedules_label">Horarios: %1$s</string>
+    <string name="stock_label">Stock: %1$s</string>
+    <string name="status_label">Estado: %1$s</string>
+    <string name="treatment_type_chronic">Tipo: Tratamiento crónico</string>
+    <string name="treatment_type_programmed">Tipo: Tratamiento programado (%1$d días)</string>
+    <string name="treatment_type_occasional">Tipo: Medicamento ocasional</string>
+    <string name="adherence_percentage">Adherencia: %1$d%%</string>
+    <string name="takes_summary">Tomas realizadas: %1$d/%2$d</string>
+    <string name="occasional_medicine">Ocasional</string>
+    <string name="take_status_taken">Tomada</string>
+    <string name="take_status_missed">Perdida</string>
+    <string name="take_status_pending">Pendiente</string>
+    <string name="take_status_upcoming">Próxima</string>
+
     <!-- Historial -->
     <string name="historial_title">Historial</string>
     <string name="total_medicines">Total medicamentos</string>
@@ -133,6 +156,13 @@
     <string name="statistics_title">Estadísticas Generales</string>
     <string name="loading_statistics">Cargando estadísticas...</string>
     <string name="adherence_chart_title">Adherencia por Medicamento</string>
+    <string name="adherence_plan_title">Plan de Adherencia Personalizada</string>
+    <string name="adherence_plan_hint">Selecciona un medicamento con tomas programadas</string>
+    <string name="adherence_plan_empty">Selecciona un medicamento activo o crónico para visualizar su plan de adherencia semanal y mensual.</string>
+    <string name="adherence_plan_summary_placeholder">Selecciona un medicamento para ver su resumen de adherencia.</string>
+    <string name="adherence_plan_summary">Promedio general: %1$d%% • %2$d/%3$d tomas cumplidas</string>
+    <string name="adherence_weekly_chart_title">Adherencia semanal</string>
+    <string name="adherence_monthly_chart_title">Adherencia mensual (últimas 4 semanas)</string>
     <string name="completed_treatments_title">Tratamientos Concluidos</string>
     <string name="treatment_start_date">Fecha de inicio</string>
     <string name="treatment_end_date">Fecha de fin</string>
@@ -156,5 +186,16 @@
     <string name="alarm_repetitions">Repeticiones de alarma</string>
     <string name="days_before_low_stock">Días antes de aviso por stock bajo</string>
     <string name="stock_notification_description">Recibirás una notificación cuando el stock sea suficiente para %d días o menos</string>
+
+    <!-- Google Calendar -->
+    <string name="google_calendar_title">Sincronización con Google Calendar</string>
+    <string name="google_calendar_test_mode_info">⚠️ Nota: Esta app está en desarrollo. Si ves un mensaje de advertencia de Google, es normal. Solo haz clic en \"Continuar\" si eres un usuario de prueba autorizado.</string>
+    <string name="google_calendar_connect_button">📅 Conectar Google Calendar</string>
+    <string name="google_calendar_disconnect_button">Desconectar Google Calendar</string>
+    <string name="google_calendar_status_checking">Estado: Verificando...</string>
+    <string name="google_calendar_status_connected">Estado: ✅ Conectado</string>
+    <string name="google_calendar_status_not_connected">Estado: ❌ No conectado</string>
+    <string name="google_calendar_info_connected">Tus tomas de medicamentos se sincronizarán automáticamente con Google Calendar. Los eventos se crearán con recordatorios 15 y 5 minutos antes de cada toma.</string>
+    <string name="google_calendar_info_not_connected">Conecta tu cuenta de Google para sincronizar automáticamente tus tomas de medicamentos con Google Calendar. Recibirás recordatorios en tu calendario.</string>
 
 </resources>

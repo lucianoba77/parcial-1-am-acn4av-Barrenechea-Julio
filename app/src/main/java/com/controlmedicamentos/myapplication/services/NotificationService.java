@@ -20,6 +20,7 @@ import androidx.core.app.NotificationCompat;
 import com.controlmedicamentos.myapplication.MainActivity;
 import com.controlmedicamentos.myapplication.R;
 import com.controlmedicamentos.myapplication.models.Medicamento;
+import com.controlmedicamentos.myapplication.receivers.TomaActionReceiver;
 
 import java.util.Calendar;
 
@@ -190,6 +191,112 @@ public class NotificationService {
     }
     
     /**
+     * Envía una notificación de alerta amarilla (10 minutos antes)
+     */
+    public void enviarNotificacionAlertaAmarilla(Medicamento medicamento, String horario) {
+        boolean notificacionesHabilitadas = preferences.getBoolean("notificaciones", true);
+        if (!notificacionesHabilitadas) {
+            return;
+        }
+        
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_medicamento)
+            .setContentTitle("Próxima toma en 10 minutos")
+            .setContentText(medicamento.getNombre() + " - " + horario)
+            .setStyle(new NotificationCompat.BigTextStyle()
+                .bigText("Recordatorio: " + medicamento.getNombre() + "\n" +
+                        "Hora programada: " + horario + "\n" +
+                        "Quedan 10 minutos"))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setColor(0xFFFFEB3B); // Amarillo
+        
+        int notificationId = (medicamento.getId() != null ? medicamento.getId().hashCode() : 
+                            (int) System.currentTimeMillis()) + 1000; // +1000 para diferenciar de alerta roja
+        notificationManager.notify(notificationId, builder.build());
+    }
+    
+    /**
+     * Envía una notificación de alerta roja (horario exacto)
+     */
+    public void enviarNotificacionAlertaRoja(Medicamento medicamento, String horario) {
+        boolean notificacionesHabilitadas = preferences.getBoolean("notificaciones", true);
+        if (!notificacionesHabilitadas) {
+            return;
+        }
+        
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_medicamento)
+            .setContentTitle("¡Es hora de tomar tu medicamento!")
+            .setContentText(medicamento.getNombre() + " - " + horario)
+            .setStyle(new NotificationCompat.BigTextStyle()
+                .bigText("Es hora de tomar: " + medicamento.getNombre() + "\n" +
+                        "Hora: " + horario + "\n" +
+                        "Por favor, marca la toma como completada"))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setColor(0xFFFF0000); // Rojo
+        
+        // Agregar acciones: Posponer y Marcar como tomada
+        Intent posponerIntent = new Intent(context, TomaActionReceiver.class);
+        posponerIntent.setAction(TomaActionReceiver.ACTION_POSPONER);
+        posponerIntent.putExtra(TomaActionReceiver.EXTRA_MEDICAMENTO_ID, medicamento.getId());
+        posponerIntent.putExtra(TomaActionReceiver.EXTRA_HORARIO, horario);
+        PendingIntent posponerPendingIntent = PendingIntent.getBroadcast(
+            context,
+            (medicamento.getId() != null ? medicamento.getId().hashCode() : 0) + 1,
+            posponerIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        
+        Intent marcarIntent = new Intent(context, TomaActionReceiver.class);
+        marcarIntent.setAction(TomaActionReceiver.ACTION_MARCAR_TOMADA);
+        marcarIntent.putExtra(TomaActionReceiver.EXTRA_MEDICAMENTO_ID, medicamento.getId());
+        marcarIntent.putExtra(TomaActionReceiver.EXTRA_HORARIO, horario);
+        PendingIntent marcarPendingIntent = PendingIntent.getBroadcast(
+            context,
+            (medicamento.getId() != null ? medicamento.getId().hashCode() : 0) + 2,
+            marcarIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        
+        builder.addAction(R.drawable.ic_medicamento, "Posponer (10 min)", posponerPendingIntent);
+        builder.addAction(R.drawable.ic_medicamento, "Marcar como tomada", marcarPendingIntent);
+        
+        // Configurar vibración más intensa para alerta roja
+        boolean vibracionHabilitada = preferences.getBoolean("vibracion", true);
+        if (vibracionHabilitada) {
+            long[] pattern = {0, 500, 200, 500, 200, 500}; // Patrón más intenso
+            builder.setVibrate(pattern);
+        }
+        
+        int notificationId = medicamento.getId() != null ? medicamento.getId().hashCode() : 
+                            (int) System.currentTimeMillis();
+        notificationManager.notify(notificationId, builder.build());
+    }
+    
+    /**
      * Cancela todas las notificaciones de un medicamento
      */
     public void cancelarNotificacionesMedicamento(Medicamento medicamento) {
@@ -198,6 +305,7 @@ public class NotificationService {
         }
         int notificationId = medicamento.getId().hashCode();
         notificationManager.cancel(notificationId);
+        notificationManager.cancel(notificationId + 1000); // También cancelar alerta amarilla
     }
 }
 

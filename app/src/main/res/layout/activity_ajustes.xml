@@ -325,17 +325,29 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Sincronización con Google Calendar"
+                    android:text="@string/google_calendar_title"
                     android:textSize="@dimen/text_size_large"
                     android:textColor="@color/black"
                     android:textStyle="bold"
                     android:layout_marginBottom="@dimen/margin_medium" />
 
+                <!-- Mensaje informativo sobre modo de prueba -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/google_calendar_test_mode_info"
+                    android:textSize="@dimen/text_size_small"
+                    android:textColor="@color/warning"
+                    android:background="@android:color/transparent"
+                    android:padding="@dimen/padding_small"
+                    android:layout_marginBottom="@dimen/margin_medium"
+                    android:drawablePadding="8dp" />
+
                 <TextView
                     android:id="@+id/tvCalendarStatus"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Estado: Verificando..."
+                    android:text="@string/google_calendar_status_checking"
                     android:textSize="@dimen/text_size_medium"
                     android:textColor="@color/black"
                     android:layout_marginBottom="@dimen/margin_medium" />
@@ -344,7 +356,7 @@
                     android:id="@+id/tvCalendarInfo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Conecta tu cuenta de Google para sincronizar automáticamente tus tomas de medicamentos con Google Calendar."
+                    android:text="@string/google_calendar_info_not_connected"
                     android:textSize="@dimen/text_size_small"
                     android:textColor="@android:color/darker_gray"
                     android:layout_marginBottom="@dimen/margin_medium" />
@@ -353,7 +365,7 @@
                     android:id="@+id/btnConectarGoogleCalendar"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/button_height_medium"
-                    android:text="📅 Conectar Google Calendar"
+                    android:text="@string/google_calendar_connect_button"
                     android:textColor="@color/white"
                     android:backgroundTint="@color/primary"
                     android:layout_marginBottom="@dimen/margin_small" />
@@ -362,7 +374,7 @@
                     android:id="@+id/btnDesconectarGoogleCalendar"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/button_height_medium"
-                    android:text="Desconectar Google Calendar"
+                    android:text="@string/google_calendar_disconnect_button"
                     android:textColor="@color/white"
                     android:backgroundTint="@color/error"
                     android:visibility="gone" />

@@ -3,6 +3,7 @@ package com.controlmedicamentos.myapplication;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.content.ComponentName;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -12,12 +13,18 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import com.controlmedicamentos.myapplication.adapters.MedicamentoAdapter;
 import com.controlmedicamentos.myapplication.models.Medicamento;
+import com.controlmedicamentos.myapplication.models.Toma;
+import com.controlmedicamentos.myapplication.models.TomaProgramada;
 import com.controlmedicamentos.myapplication.services.AuthService;
 import com.controlmedicamentos.myapplication.services.FirebaseService;
+import com.controlmedicamentos.myapplication.services.TomaStateCheckerService;
+import com.controlmedicamentos.myapplication.services.TomaTrackingService;
 import com.controlmedicamentos.myapplication.utils.NetworkUtils;
 import com.controlmedicamentos.myapplication.utils.StockAlertUtils;
 import com.google.firebase.firestore.ListenerRegistration;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements MedicamentoAdapter.OnMedicamentoClickListener {
@@ -31,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements MedicamentoAdapte
     private List<Medicamento> medicamentos;
     private AuthService authService;
     private FirebaseService firebaseService;
+    private TomaTrackingService tomaTrackingService;
     private ListenerRegistration medicamentosListener;
     private boolean listenerYaActualizo = false; // Flag para evitar que la carga inicial sobrescriba los datos del listener
 
@@ -44,12 +52,12 @@ public class MainActivity extends AppCompatActivity implements MedicamentoAdapte
         }
         
         try {
-            Log.d(TAG, "=== Iniciando MainActivity ===");
             setContentView(R.layout.activity_main);
 
             // Inicializar servicios
             authService = new AuthService();
             firebaseService = new FirebaseService();
+            tomaTrackingService = new TomaTrackingService(this);
 
             // Verificar autenticación
             if (!authService.isUserLoggedIn()) {
@@ -60,17 +68,20 @@ public class MainActivity extends AppCompatActivity implements MedicamentoAdapte
 
             Log.d(TAG, "Usuario autenticado, continuando con inicialización");
 
-            // Inicializar vistas
-            inicializarVistas();
+        // Inicializar vistas
+        inicializarVistas();
 
-            // Configurar RecyclerView
-            configurarRecyclerView();
+        // Configurar RecyclerView
+        configurarRecyclerView();
 
             // Cargar datos desde Firebase
             cargarDatosDesdeFirebase();
 
-            // Configurar navegación
-            configurarNavegacion();
+        // Configurar navegación
+        configurarNavegacion();
+        
+        // Iniciar servicio de verificación de estados de tomas
+        iniciarServicioVerificacionTomas();
             
             Log.d(TAG, "MainActivity inicializada correctamente");
         } catch (Exception e) {
@@ -104,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements MedicamentoAdapte
 
     private void inicializarVistas() {
         try {
-            rvMedicamentos = findViewById(R.id.rvMedicamentos);
+        rvMedicamentos = findViewById(R.id.rvMedicamentos);
             // Botones de navegación
             btnNavHome = findViewById(R.id.btnNavHome);
             btnNavNuevaMedicina = findViewById(R.id.btnNavNuevaMedicina);
@@ -166,17 +177,16 @@ public class MainActivity extends AppCompatActivity implements MedicamentoAdapte
                         medicamentos = new ArrayList<>();
                     }
                     
+                    // Inicializar tomas del día para cada medicamento
+                    for (Medicamento med : medicamentos) {
+                        tomaTrackingService.inicializarTomasDia(med);
+                    }
+                    
                     // Filtrar medicamentos: solo mostrar en dashboard los que tienen
                     // tomas diarias > 0 y horario configurado (medicamentos regulares)
                     // Lógica consistente con React: DashboardScreen.jsx líneas 19-23
                     List<Medicamento> medicamentosParaDashboard = new ArrayList<>();
                     for (Medicamento med : medicamentos) {
-                        // Log detallado para debugging
-                        Log.d(TAG, "Medicamento: " + med.getNombre() + 
-                            ", Activo: " + med.isActivo() + 
-                            ", TomasDiarias: " + med.getTomasDiarias() + 
-                            ", PrimeraToma: '" + med.getHorarioPrimeraToma() + "'");
-                        
                         // Mostrar solo si:
                         // 1. activo !== false (activo es true o no está definido)
                         // 2. tomasDiarias > 0
@@ -187,14 +197,10 @@ public class MainActivity extends AppCompatActivity implements MedicamentoAdapte
                             !med.getHorarioPrimeraToma().isEmpty() &&
                             !med.getHorarioPrimeraToma().equals("00:00")) {
                             medicamentosParaDashboard.add(med);
-                            Log.d(TAG, "  -> INCLUIDO en dashboard");
-                        } else {
-                            Log.d(TAG, "  -> EXCLUIDO del dashboard");
                         }
                         // Los medicamentos ocasionales (tomasDiarias = 0) no aparecen aquí,
                         // solo en el botiquín
                     }
-                    Log.d(TAG, "Total medicamentos para dashboard: " + medicamentosParaDashboard.size());
                     
                     // Verificar que el adapter esté inicializado
                     // Solo actualizar si el listener no ha actualizado ya (evitar sobrescribir datos más recientes)
@@ -271,6 +277,11 @@ public class MainActivity extends AppCompatActivity implements MedicamentoAdapte
                                 }
                             }
                             
+                            // Inicializar tomas del día para cada medicamento activo
+                            for (Medicamento med : medicamentosActivos) {
+                                tomaTrackingService.inicializarTomasDia(med);
+                            }
+                            
                             // Filtrar medicamentos: solo mostrar en dashboard los que tienen
                             // tomas diarias > 0 y horario configurado (medicamentos regulares)
                             // Lógica consistente con React: DashboardScreen.jsx líneas 19-23
@@ -294,7 +305,7 @@ public class MainActivity extends AppCompatActivity implements MedicamentoAdapte
                             
                             if (adapter != null) {
                                 ordenarMedicamentosPorHorario();
-                                adapter.actualizarMedicamentos(medicamentos);
+        adapter.actualizarMedicamentos(medicamentos);
                                 listenerYaActualizo = true; // Marcar DESPUÉS de actualizar el adapter
                                 Log.d(TAG, "Listener: dashboard actualizado con " + medicamentos.size() + " medicamentos");
                                 
@@ -308,8 +319,7 @@ public class MainActivity extends AppCompatActivity implements MedicamentoAdapte
                                         public void run() {
                                             // Verificar nuevamente si sigue vacío (por si acaso se actualizó en el delay)
                                             if (adapter != null && adapter.getItemCount() == 0) {
-                                                // No mostrar Toast, solo log para debugging
-                                                Log.d(TAG, "No hay medicamentos programados para mostrar en el dashboard");
+                                                // Lista vacía, no hay medicamentos programados
                                             }
                                         }
                                     }, 500); // Esperar 500ms antes de verificar
@@ -340,10 +350,98 @@ public class MainActivity extends AppCompatActivity implements MedicamentoAdapte
         }
     }
 
+    /**
+     * Ordena los medicamentos por la próxima toma programada.
+     * Los medicamentos con la toma más próxima aparecen primero.
+     * Los medicamentos con tomas omitidas van al final.
+     */
     private void ordenarMedicamentosPorHorario() {
-        // Ordenar medicamentos por el horario de la toma más próxima
-        // Por ahora ordenamiento simple, se puede mejorar más adelante
-        // TODO: Implementar ordenamiento real por horario más próximo
+        if (medicamentos == null || medicamentos.isEmpty()) {
+            return;
+        }
+
+        // Obtener hora actual
+        Calendar cal = Calendar.getInstance();
+        int horaActual = cal.get(Calendar.HOUR_OF_DAY);
+        int minutoActual = cal.get(Calendar.MINUTE);
+        int minutosActuales = horaActual * 60 + minutoActual;
+
+        // Ordenar usando un comparador personalizado
+        medicamentos.sort((med1, med2) -> {
+            // Verificar si tienen tomas omitidas
+            boolean tieneOmitidas1 = tomaTrackingService.tieneTomasOmitidas(med1.getId());
+            boolean tieneOmitidas2 = tomaTrackingService.tieneTomasOmitidas(med2.getId());
+            
+            // Si uno tiene omitidas y el otro no, el que tiene omitidas va al final
+            if (tieneOmitidas1 && !tieneOmitidas2) {
+                return 1; // med1 va después
+            }
+            if (!tieneOmitidas1 && tieneOmitidas2) {
+                return -1; // med2 va después
+            }
+            
+            // Si ambos tienen o no tienen omitidas, ordenar por próxima toma
+            long proximaToma1 = calcularMinutosHastaProximaToma(med1, minutosActuales);
+            long proximaToma2 = calcularMinutosHastaProximaToma(med2, minutosActuales);
+            return Long.compare(proximaToma1, proximaToma2);
+        });
+    }
+
+    /**
+     * Calcula los minutos hasta la próxima toma de un medicamento.
+     * @param medicamento El medicamento a evaluar
+     * @param minutosActuales Minutos transcurridos desde medianoche (0-1439)
+     * @return Minutos hasta la próxima toma (0 si es la próxima hora, o minutos hasta mañana)
+     */
+    private long calcularMinutosHastaProximaToma(Medicamento medicamento, int minutosActuales) {
+        if (medicamento == null || medicamento.getHorariosTomas() == null || 
+            medicamento.getHorariosTomas().isEmpty()) {
+            // Si no tiene horarios, ponerlo al final
+            return Long.MAX_VALUE;
+        }
+
+        List<String> horarios = medicamento.getHorariosTomas();
+        long minutosMinimos = Long.MAX_VALUE;
+
+        // Buscar el próximo horario de hoy
+        for (String horario : horarios) {
+            if (horario == null || horario.isEmpty()) {
+                continue;
+            }
+
+            try {
+                String[] partes = horario.split(":");
+                if (partes.length < 2) {
+                    continue;
+                }
+
+                int hora = Integer.parseInt(partes[0]);
+                int minuto = Integer.parseInt(partes[1]);
+                int minutosHorario = hora * 60 + minuto;
+
+                if (minutosHorario >= minutosActuales) {
+                    // Este horario es hoy
+                    long diferencia = minutosHorario - minutosActuales;
+                    if (diferencia < minutosMinimos) {
+                        minutosMinimos = diferencia;
+                    }
+                } else {
+                    // Este horario ya pasó hoy, será mañana
+                    long minutosHastaMedianoche = (24 * 60) - minutosActuales;
+                    long minutosDesdeMedianoche = minutosHorario;
+                    long diferencia = minutosHastaMedianoche + minutosDesdeMedianoche;
+                    if (diferencia < minutosMinimos) {
+                        minutosMinimos = diferencia;
+                    }
+                }
+            } catch (NumberFormatException e) {
+                // Ignorar horarios con formato inválido
+                continue;
+            }
+        }
+
+        // Si no se encontró ningún horario válido, ponerlo al final
+        return minutosMinimos == Long.MAX_VALUE ? Long.MAX_VALUE : minutosMinimos;
     }
 
     private void configurarNavegacion() {
@@ -378,47 +476,235 @@ public class MainActivity extends AppCompatActivity implements MedicamentoAdapte
                 startActivity(intent);
                 finish();
             });
-        }
+            }
     }
 
     // Implementar métodos de la interfaz
     @Override
     public void onTomadoClick(Medicamento medicamento) {
-        // Consumir dosis
+        if (medicamento == null) {
+            return;
+        }
+
+        if (!NetworkUtils.isNetworkAvailable(this)) {
+            Toast.makeText(this, "No hay conexión a internet", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (medicamento.getId() == null || medicamento.getId().isEmpty()) {
+            Toast.makeText(this, "Medicamento sin identificador válido", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final int stockAnterior = medicamento.getStockActual();
+        final int diasRestantesAnteriores = medicamento.getDiasRestantesDuracion();
+        final boolean estabaPausado = medicamento.isPausado();
+
         medicamento.consumirDosis();
-
-        // Mostrar confirmación
-        Toast.makeText(this, "✓ " + medicamento.getNombre() + " marcado como tomado", Toast.LENGTH_SHORT).show();
-
-        // Verificar si se completó el tratamiento
-        if (medicamento.estaAgotado()) {
-            Toast.makeText(this, "¡Tratamiento de " + medicamento.getNombre() + " completado!", Toast.LENGTH_LONG).show();
-            // Pausar el medicamento
+        final boolean tratamientoCompletado = medicamento.estaAgotado();
+        if (tratamientoCompletado) {
             medicamento.pausarMedicamento();
         }
 
-        // Actualizar en Firebase
-        firebaseService.actualizarMedicamento(medicamento, new FirebaseService.FirestoreCallback() {
+        // Obtener el horario de la toma más próxima para marcarla como tomada
+        String horarioToma = obtenerHorarioTomaProxima(medicamento);
+        
+        Toma toma = new Toma();
+        toma.setMedicamentoId(medicamento.getId());
+        toma.setMedicamentoNombre(medicamento.getNombre());
+        Date ahora = new Date();
+        toma.setFechaHoraProgramada(ahora);
+        toma.setFechaHoraTomada(ahora);
+        toma.setEstado(Toma.EstadoToma.TOMADA);
+        toma.setObservaciones("Registrada desde el panel principal");
+
+        firebaseService.guardarToma(toma, new FirebaseService.FirestoreCallback() {
             @Override
             public void onSuccess(Object result) {
-                // Actualización exitosa - el listener de tiempo real actualizará la UI
-                adapter.notifyDataSetChanged();
+                // Marcar la toma como tomada en el tracking service
+                if (horarioToma != null) {
+                    tomaTrackingService.marcarTomaComoTomada(medicamento.getId(), horarioToma);
+                }
+                
+                firebaseService.actualizarMedicamento(medicamento, new FirebaseService.FirestoreCallback() {
+                    @Override
+                    public void onSuccess(Object updateResult) {
+                        // Reordenar medicamentos después de marcar como tomada
+                        ordenarMedicamentosPorHorario();
+                        adapter.notifyDataSetChanged();
+                        Toast.makeText(MainActivity.this,
+                                "✓ " + medicamento.getNombre() + " marcado como tomado",
+                                Toast.LENGTH_SHORT).show();
+                        if (tratamientoCompletado) {
+                            Toast.makeText(MainActivity.this,
+                                    "¡Tratamiento de " + medicamento.getNombre() + " completado!",
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    }
+
+                    @Override
+                    public void onError(Exception exception) {
+                        revertirCambiosMedicamento(medicamento, stockAnterior, diasRestantesAnteriores, estabaPausado);
+                        Toast.makeText(MainActivity.this,
+                                "Error al actualizar medicamento",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
 
             @Override
             public void onError(Exception exception) {
-                Toast.makeText(MainActivity.this, "Error al actualizar medicamento", Toast.LENGTH_SHORT).show();
+                revertirCambiosMedicamento(medicamento, stockAnterior, diasRestantesAnteriores, estabaPausado);
+                Toast.makeText(MainActivity.this,
+                        "Error al registrar la toma. Intenta nuevamente.",
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    @Override
-    public void onMedicamentoClick(Medicamento medicamento) {
-        // Mostrar detalles del medicamento
-        Toast.makeText(this, "Detalles de " + medicamento.getNombre(), Toast.LENGTH_SHORT).show();
-        // TODO: Implementar pantalla de detalles
+    /**
+     * Obtiene el horario de la toma más próxima del medicamento
+     */
+    private String obtenerHorarioTomaProxima(Medicamento medicamento) {
+        if (medicamento == null || medicamento.getHorariosTomas() == null || 
+            medicamento.getHorariosTomas().isEmpty()) {
+            return null;
+        }
+        
+        Calendar ahora = Calendar.getInstance();
+        int horaActual = ahora.get(Calendar.HOUR_OF_DAY);
+        int minutoActual = ahora.get(Calendar.MINUTE);
+        int minutosActuales = horaActual * 60 + minutoActual;
+        
+        String horarioProximo = null;
+        long minutosMinimos = Long.MAX_VALUE;
+        
+        for (String horario : medicamento.getHorariosTomas()) {
+            try {
+                String[] partes = horario.split(":");
+                if (partes.length != 2) {
+                    continue;
+                }
+                
+                int hora = Integer.parseInt(partes[0]);
+                int minuto = Integer.parseInt(partes[1]);
+                int minutosHorario = hora * 60 + minuto;
+                
+                long diferencia;
+                if (minutosHorario >= minutosActuales) {
+                    diferencia = minutosHorario - minutosActuales;
+                } else {
+                    diferencia = (24 * 60) - minutosActuales + minutosHorario;
+                }
+                
+                if (diferencia < minutosMinimos) {
+                    minutosMinimos = diferencia;
+                    horarioProximo = horario;
+                }
+            } catch (NumberFormatException e) {
+                continue;
+            }
+        }
+        
+        return horarioProximo;
+    }
+    
+    private void revertirCambiosMedicamento(Medicamento medicamento,
+                                            int stockAnterior,
+                                            int diasRestantesAnteriores,
+                                            boolean estabaPausado) {
+        medicamento.setStockActual(stockAnterior);
+        medicamento.setDiasRestantesDuracion(diasRestantesAnteriores);
+        medicamento.setPausado(estabaPausado);
     }
 
+    @Override
+    public void onMedicamentoClick(Medicamento medicamento) {
+        if (medicamento == null || medicamento.getId() == null) {
+            Toast.makeText(this, "Error al abrir detalles del medicamento", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Abrir pantalla de detalles
+        Intent intent = DetallesMedicamentoActivity.createIntent(this, medicamento.getId());
+        startActivity(intent);
+    }
+    
+    @Override
+    public void onPosponerClick(Medicamento medicamento) {
+        if (medicamento == null) {
+            return;
+        }
+        
+        // Obtener el horario de la toma más próxima en estado de alerta
+        String horarioToma = obtenerHorarioTomaEnAlerta(medicamento);
+        if (horarioToma == null) {
+            Toast.makeText(this, "No hay tomas pendientes para posponer", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Intentar posponer la toma
+        boolean pospuesta = tomaTrackingService.posponerToma(medicamento.getId(), horarioToma);
+        
+        if (pospuesta) {
+            Toast.makeText(this, "Toma pospuesta 10 minutos. Quedan " + 
+                    (3 - obtenerPosposicionesRestantes(medicamento, horarioToma)) + 
+                    " posposiciones disponibles", Toast.LENGTH_LONG).show();
+            
+            // Reordenar y actualizar la lista
+            ordenarMedicamentosPorHorario();
+            adapter.notifyDataSetChanged();
+        } else {
+            Toast.makeText(this, "No se puede posponer más. Máximo 3 posposiciones alcanzado. La toma se considera omitida.", 
+                    Toast.LENGTH_LONG).show();
+            
+            // Reordenar y actualizar la lista (el medicamento irá al final)
+            ordenarMedicamentosPorHorario();
+            adapter.notifyDataSetChanged();
+        }
+    }
+    
+    /**
+     * Obtiene el horario de la toma más próxima en estado de alerta
+     */
+    private String obtenerHorarioTomaEnAlerta(Medicamento medicamento) {
+        List<TomaProgramada> tomas = tomaTrackingService.obtenerTomasMedicamento(medicamento.getId());
+        
+        for (TomaProgramada toma : tomas) {
+            if (!toma.isTomada() && 
+                (toma.getEstado() == TomaProgramada.EstadoTomaProgramada.ALERTA_ROJA ||
+                 toma.getEstado() == TomaProgramada.EstadoTomaProgramada.RETRASO)) {
+                return toma.getHorario();
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Obtiene las posposiciones restantes para una toma
+     */
+    private int obtenerPosposicionesRestantes(Medicamento medicamento, String horario) {
+        List<TomaProgramada> tomas = tomaTrackingService.obtenerTomasMedicamento(medicamento.getId());
+        
+        for (TomaProgramada toma : tomas) {
+            if (toma.getHorario().equals(horario)) {
+                return 3 - toma.getPosposiciones();
+            }
+        }
+        
+        return 0;
+    }
+
+    /**
+     * Inicia el servicio de verificación de estados de tomas
+     */
+    private void iniciarServicioVerificacionTomas() {
+        Intent serviceIntent = new Intent(this, TomaStateCheckerService.class);
+        startService(serviceIntent);
+        Log.d(TAG, "Servicio de verificación de tomas iniciado");
+    }
+    
     /**
      * Verifica alertas de stock para todos los medicamentos
      * Consistente con React: useStockAlerts.js

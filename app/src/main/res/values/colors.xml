@@ -11,6 +11,9 @@
     <color name="surface">#FFFFFF</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
+    
+    <!-- Colores de texto -->
+    <color name="secondary_text">#757575</color>
 
     <!-- Colores de medicamentos -->
     <color name="medicamento_azul">#2196F3</color>
@@ -27,6 +30,10 @@
     <color name="barra_proxima">#FFC107</color>
     <color name="barra_tomada">#4CAF50</color>
     <color name="barra_perdida">#F44336</color>
+    <color name="barra_alerta_amarilla">#FFEB3B</color>
+    <color name="barra_alerta_roja">#F44336</color>
+    <color name="barra_retraso">#F44336</color>
+    <color name="barra_omitida">#D32F2F</color>
 
     <!-- Colores de estado -->
     <color name="success">#4CAF50</color>

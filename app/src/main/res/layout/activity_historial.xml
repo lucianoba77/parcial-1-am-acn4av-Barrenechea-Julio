@@ -122,6 +122,108 @@
 
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Plan de adherencia personalizada -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardPlanAdherencia"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_medium"
+            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardElevation="@dimen/card_elevation">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/padding_medium">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/adherence_plan_title"
+                    android:textSize="@dimen/text_size_large"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="@dimen/margin_small" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilMedicamentosAdherencia"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/actvMedicamentosAdherencia"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/adherence_plan_hint"
+                        android:inputType="text"
+                        android:completionThreshold="1" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:id="@+id/tvResumenPlanAdherencia"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/text_size_medium"
+                    android:textColor="@color/black"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:textStyle="bold"
+                    android:text="@string/adherence_plan_summary_placeholder" />
+
+                <TextView
+                    android:id="@+id/tvEmptyPlanAdherencia"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/adherence_plan_empty"
+                    android:textSize="@dimen/text_size_medium"
+                    android:textColor="@color/secondary_text"
+                    android:visibility="gone"
+                    android:layout_marginBottom="@dimen/margin_small" />
+
+                <LinearLayout
+                    android:id="@+id/layoutPlanCharts"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/adherence_weekly_chart_title"
+                        android:textSize="@dimen/text_size_medium"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="@dimen/margin_small" />
+
+                    <com.github.mikephil.charting.charts.BarChart
+                        android:id="@+id/chartAdherenciaSemanal"
+                        android:layout_width="match_parent"
+                        android:layout_height="220dp"
+                        android:layout_marginBottom="@dimen/margin_medium" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/adherence_monthly_chart_title"
+                        android:textSize="@dimen/text_size_medium"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="@dimen/margin_small" />
+
+                    <com.github.mikephil.charting.charts.BarChart
+                        android:id="@+id/chartAdherenciaMensual"
+                        android:layout_width="match_parent"
+                        android:layout_height="220dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Tratamientos Concluidos -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"

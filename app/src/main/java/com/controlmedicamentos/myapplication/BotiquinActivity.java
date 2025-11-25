@@ -14,11 +14,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import com.controlmedicamentos.myapplication.adapters.BotiquinAdapter;
 import com.controlmedicamentos.myapplication.models.Medicamento;
+import com.controlmedicamentos.myapplication.models.Toma;
 import com.controlmedicamentos.myapplication.services.AuthService;
 import com.controlmedicamentos.myapplication.services.FirebaseService;
 import com.controlmedicamentos.myapplication.utils.NetworkUtils;
 import com.controlmedicamentos.myapplication.utils.AlarmScheduler;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class BotiquinActivity extends AppCompatActivity implements BotiquinAdapter.OnMedicamentoClickListener {
@@ -251,40 +253,93 @@ public class BotiquinActivity extends AppCompatActivity implements BotiquinAdapt
 
     @Override
     public void onTomeUnaClick(Medicamento medicamento) {
-        // Implementar funcionalidad "Tomé una" para restar stock
-        if (medicamento.getTomasDiarias() == 0 && medicamento.getStockActual() > 0) {
-            if (!NetworkUtils.isNetworkAvailable(this)) {
-                Toast.makeText(this, "No hay conexión a internet", Toast.LENGTH_LONG).show();
-                return;
+        if (medicamento == null) {
+            return;
+        }
+
+        if (medicamento.getTomasDiarias() != 0) {
+            Toast.makeText(this, "Esta acción solo está disponible para medicamentos ocasionales", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (medicamento.getStockActual() <= 0) {
+            Toast.makeText(this, "No hay stock disponible para registrar la toma", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!NetworkUtils.isNetworkAvailable(this)) {
+            Toast.makeText(this, "No hay conexión a internet", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (medicamento.getId() == null || medicamento.getId().isEmpty()) {
+            Toast.makeText(this, "Medicamento sin identificador válido", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final int stockAnterior = medicamento.getStockActual();
+        final int diasRestantesAnteriores = medicamento.getDiasRestantesDuracion();
+        final boolean estabaPausado = medicamento.isPausado();
+
+        medicamento.consumirDosis();
+        final boolean tratamientoCompletado = medicamento.estaAgotado();
+        if (tratamientoCompletado) {
+            medicamento.pausarMedicamento();
+        }
+
+        Toma toma = new Toma();
+        toma.setMedicamentoId(medicamento.getId());
+        toma.setMedicamentoNombre(medicamento.getNombre());
+        Date ahora = new Date();
+        toma.setFechaHoraProgramada(ahora);
+        toma.setFechaHoraTomada(ahora);
+        toma.setEstado(Toma.EstadoToma.TOMADA);
+        toma.setObservaciones("Registrada manualmente desde el botiquín");
+
+        firebaseService.guardarToma(toma, new FirebaseService.FirestoreCallback() {
+            @Override
+            public void onSuccess(Object result) {
+                firebaseService.actualizarMedicamento(medicamento, new FirebaseService.FirestoreCallback() {
+                    @Override
+                    public void onSuccess(Object updateResult) {
+                        Toast.makeText(BotiquinActivity.this,
+                                "Toma registrada. Stock actualizado.",
+                                Toast.LENGTH_SHORT).show();
+                        if (tratamientoCompletado) {
+                            Toast.makeText(BotiquinActivity.this,
+                                    "Tratamiento de " + medicamento.getNombre() + " completado.",
+                                    Toast.LENGTH_LONG).show();
+                        }
+                        cargarMedicamentos();
+                    }
+
+                    @Override
+                    public void onError(Exception exception) {
+                        revertirCambiosMedicamento(medicamento, stockAnterior, diasRestantesAnteriores, estabaPausado);
+                        Toast.makeText(BotiquinActivity.this,
+                                "Error al actualizar el medicamento",
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
             }
 
-            firebaseService.restarStockMedicamento(medicamento.getId(), new FirebaseService.FirestoreCallback() {
-                @Override
-                public void onSuccess(Object result) {
-                    if (result instanceof java.util.Map) {
-                        @SuppressWarnings("unchecked")
-                        java.util.Map<String, Object> resultado = (java.util.Map<String, Object>) result;
-                        Object stockActualObj = resultado.get("stockActual");
-                        int nuevoStock = stockActualObj instanceof Number ? ((Number) stockActualObj).intValue() : 0;
-                        Toast.makeText(BotiquinActivity.this, 
-                            "Toma registrada. Stock actualizado: " + nuevoStock + " unidades restantes", 
-                            Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(BotiquinActivity.this, "Toma registrada exitosamente", Toast.LENGTH_SHORT).show();
-                    }
-                    // Recargar medicamentos para actualizar la vista
-                    cargarMedicamentos();
-                }
-
-                @Override
-                public void onError(Exception exception) {
-                    Toast.makeText(BotiquinActivity.this, 
-                        "Error al registrar toma: " + 
-                        (exception != null ? exception.getMessage() : "Error desconocido"), 
+            @Override
+            public void onError(Exception exception) {
+                revertirCambiosMedicamento(medicamento, stockAnterior, diasRestantesAnteriores, estabaPausado);
+                Toast.makeText(BotiquinActivity.this,
+                        "Error al registrar la toma",
                         Toast.LENGTH_LONG).show();
-                }
-            });
-        }
+            }
+        });
+    }
+
+    private void revertirCambiosMedicamento(Medicamento medicamento,
+                                            int stockAnterior,
+                                            int diasRestantesAnteriores,
+                                            boolean estabaPausado) {
+        medicamento.setStockActual(stockAnterior);
+        medicamento.setDiasRestantesDuracion(diasRestantesAnteriores);
+        medicamento.setPausado(estabaPausado);
     }
 
     @Override

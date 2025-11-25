@@ -53,34 +53,47 @@ public class GoogleCalendarCallbackActivity extends AppCompatActivity {
             return;
         }
         
-        // Obtener el hash de la URL (en OAuth implícito, el token viene en el fragment)
-        String fragment = data.getFragment();
+        String accessToken = null;
+        String expiresIn = null;
+        String tokenType = null;
         
-        if (fragment == null || fragment.isEmpty()) {
-            // Verificar si hay error en los query parameters
+        // Primero intentar obtener del query (viene desde la página HTML de Firebase Hosting)
+        accessToken = data.getQueryParameter("access_token");
+        expiresIn = data.getQueryParameter("expires_in");
+        tokenType = data.getQueryParameter("token_type");
+        
+        // Si no está en query, intentar del fragment (OAuth implícito directo)
+        if (accessToken == null || accessToken.isEmpty()) {
+            String fragment = data.getFragment();
+            
+            if (fragment != null && !fragment.isEmpty()) {
+                Map<String, String> params = parseFragment(fragment);
+                accessToken = params.get("access_token");
+                expiresIn = params.get("expires_in");
+                tokenType = params.get("token_type");
+            }
+        }
+        
+        // Si aún no hay token, verificar si hay error
+        if (accessToken == null || accessToken.isEmpty()) {
             String error = data.getQueryParameter("error");
+            if (error == null) {
+                error = data.getFragment() != null ? parseFragment(data.getFragment()).get("error") : null;
+            }
+            
             if (error != null) {
                 String errorDescription = data.getQueryParameter("error_description");
+                if (errorDescription == null && data.getFragment() != null) {
+                    errorDescription = parseFragment(data.getFragment()).get("error_description");
+                }
                 String mensajeError = errorDescription != null ? errorDescription : "Error desconocido";
                 Log.e(TAG, "Error en OAuth: " + error + " - " + mensajeError);
                 mostrarErrorYRegresar("No se pudo conectar con Google Calendar: " + mensajeError);
                 return;
             }
             
-            Log.e(TAG, "No se encontró fragment en la URL");
-            mostrarErrorYRegresar("No se pudo obtener el token de Google. Intenta nuevamente.");
-            return;
-        }
-        
-        // Parsear el fragment para obtener el access_token
-        Map<String, String> params = parseFragment(fragment);
-        String accessToken = params.get("access_token");
-        String expiresIn = params.get("expires_in");
-        String tokenType = params.get("token_type");
-        
-        if (accessToken == null || accessToken.isEmpty()) {
-            Log.e(TAG, "No se encontró access_token en el fragment");
-            mostrarErrorYRegresar("No se pudo obtener el token de acceso de Google");
+            Log.e(TAG, "No se encontró access_token en la URL");
+            mostrarErrorYRegresar("No se pudo obtener el token de acceso de Google. Intenta nuevamente.");
             return;
         }
         

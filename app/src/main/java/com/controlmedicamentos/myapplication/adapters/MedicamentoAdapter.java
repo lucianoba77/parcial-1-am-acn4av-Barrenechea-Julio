@@ -1,6 +1,7 @@
 package com.controlmedicamentos.myapplication.adapters;
 
 import android.content.Context;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,10 +10,13 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import com.controlmedicamentos.myapplication.R;
 import com.controlmedicamentos.myapplication.models.Medicamento;
+import com.controlmedicamentos.myapplication.models.TomaProgramada;
+import com.controlmedicamentos.myapplication.services.TomaTrackingService;
 import java.util.List;
 
 public class MedicamentoAdapter extends RecyclerView.Adapter<MedicamentoAdapter.MedicamentoViewHolder> {
@@ -25,6 +29,7 @@ public class MedicamentoAdapter extends RecyclerView.Adapter<MedicamentoAdapter.
     public interface OnMedicamentoClickListener {
         void onTomadoClick(Medicamento medicamento);
         void onMedicamentoClick(Medicamento medicamento);
+        void onPosponerClick(Medicamento medicamento);
     }
 
     public MedicamentoAdapter(Context context, List<Medicamento> medicamentos) {
@@ -66,6 +71,7 @@ public class MedicamentoAdapter extends RecyclerView.Adapter<MedicamentoAdapter.
         private LinearLayout llBarrasTomas;
         private TextView tvStockInfo;
         private MaterialButton btnTomado;
+        private MaterialButton btnPosponer;
 
         public MedicamentoViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -75,6 +81,7 @@ public class MedicamentoAdapter extends RecyclerView.Adapter<MedicamentoAdapter.
             llBarrasTomas = itemView.findViewById(R.id.llBarrasTomas);
             tvStockInfo = itemView.findViewById(R.id.tvStockInfo);
             btnTomado = itemView.findViewById(R.id.btnTomado);
+            btnPosponer = itemView.findViewById(R.id.btnPosponer);
         }
 
         public void bind(Medicamento medicamento) {
@@ -88,7 +95,20 @@ public class MedicamentoAdapter extends RecyclerView.Adapter<MedicamentoAdapter.
             ivIconoMedicamento.setImageResource(medicamento.getIconoPresentacion());
 
             // Configurar barras de progreso
-            configurarBarrasTomas(medicamento);
+            boolean tieneTomasEnAlerta = configurarBarrasTomas(medicamento);
+
+            // Mostrar/ocultar botón de posponer según el estado de las tomas
+            if (btnPosponer != null) {
+                btnPosponer.setVisibility(tieneTomasEnAlerta ? View.VISIBLE : View.GONE);
+                btnPosponer.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (listener != null) {
+                            listener.onPosponerClick(medicamento);
+                        }
+                    }
+                });
+            }
 
             // Configurar botón Tomado
             btnTomado.setOnClickListener(new View.OnClickListener() {
@@ -111,13 +131,25 @@ public class MedicamentoAdapter extends RecyclerView.Adapter<MedicamentoAdapter.
             });
         }
 
-        private void configurarBarrasTomas(Medicamento medicamento) {
+        /**
+         * Configura las barras de tomas y retorna true si hay tomas en estado de alerta
+         */
+        private boolean configurarBarrasTomas(Medicamento medicamento) {
             // Limpiar barras existentes
             llBarrasTomas.removeAllViews();
 
+            // Obtener estado de las tomas programadas
+            TomaTrackingService trackingService = new TomaTrackingService(context);
+            trackingService.inicializarTomasDia(medicamento);
+            List<TomaProgramada> tomasProgramadas = trackingService.obtenerTomasMedicamento(medicamento.getId());
+
             // Crear barras según tomas diarias
             int tomasDiarias = medicamento.getTomasDiarias();
-            for (int i = 0; i < tomasDiarias; i++) {
+            List<String> horarios = medicamento.getHorariosTomas();
+            boolean tieneTomasEnAlerta = false;
+            
+            for (int i = 0; i < tomasDiarias && i < horarios.size(); i++) {
+                String horario = horarios.get(i);
                 ProgressBar barra = new ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal);
                 barra.setLayoutParams(new LinearLayout.LayoutParams(
                         0,
@@ -125,8 +157,31 @@ public class MedicamentoAdapter extends RecyclerView.Adapter<MedicamentoAdapter.
                         1.0f
                 ));
                 barra.setMax(100);
-                barra.setProgress(0);
-                barra.setProgressTintList(context.getColorStateList(R.color.barra_pendiente));
+                barra.setProgress(100); // Llenar la barra para mostrar el color
+
+                // Obtener estado de esta toma específica
+                TomaProgramada.EstadoTomaProgramada estado = TomaProgramada.EstadoTomaProgramada.PENDIENTE;
+                for (TomaProgramada toma : tomasProgramadas) {
+                    if (toma.getHorario().equals(horario)) {
+                        estado = toma.getEstado();
+                        break;
+                    }
+                }
+
+                // Configurar color según el estado
+                int colorResId = obtenerColorEstado(estado);
+                barra.setProgressTintList(ContextCompat.getColorStateList(context, colorResId));
+
+                // Si está en estado ALERTA_ROJA, hacer parpadear
+                if (estado == TomaProgramada.EstadoTomaProgramada.ALERTA_ROJA) {
+                    iniciarParpadeo(barra);
+                }
+                
+                // Verificar si hay tomas en alerta (ALERTA_ROJA o RETRASO)
+                if (estado == TomaProgramada.EstadoTomaProgramada.ALERTA_ROJA || 
+                    estado == TomaProgramada.EstadoTomaProgramada.RETRASO) {
+                    tieneTomasEnAlerta = true;
+                }
 
                 // Agregar margen entre barras
                 if (i > 0) {
@@ -137,6 +192,46 @@ public class MedicamentoAdapter extends RecyclerView.Adapter<MedicamentoAdapter.
 
                 llBarrasTomas.addView(barra);
             }
+            
+            return tieneTomasEnAlerta;
+        }
+
+        /**
+         * Obtiene el color correspondiente al estado de la toma
+         */
+        private int obtenerColorEstado(TomaProgramada.EstadoTomaProgramada estado) {
+            switch (estado) {
+                case PENDIENTE:
+                    return R.color.barra_pendiente;
+                case ALERTA_AMARILLA:
+                    return R.color.barra_alerta_amarilla;
+                case ALERTA_ROJA:
+                case RETRASO:
+                    return R.color.barra_alerta_roja;
+                case OMITIDA:
+                    return R.color.barra_omitida;
+                default:
+                    return R.color.barra_pendiente;
+            }
+        }
+
+        /**
+         * Inicia el efecto de parpadeo para la barra roja
+         */
+        private void iniciarParpadeo(ProgressBar barra) {
+            Handler handler = new Handler();
+            Runnable runnable = new Runnable() {
+                boolean visible = true;
+                @Override
+                public void run() {
+                    if (barra.getVisibility() == View.VISIBLE) {
+                        barra.setAlpha(visible ? 1.0f : 0.3f);
+                        visible = !visible;
+                        handler.postDelayed(this, 500); // Parpadear cada 500ms
+                    }
+                }
+            };
+            handler.post(runnable);
         }
     }
 }

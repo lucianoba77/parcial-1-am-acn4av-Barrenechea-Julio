@@ -378,6 +378,133 @@ public class FirebaseService {
             });
     }
 
+    // ==================== TOMAS ====================
+
+    /**
+     * Guarda una toma realizada por el usuario.
+     */
+    public void guardarToma(Toma toma, FirestoreCallback callback) {
+        FirebaseUser firebaseUser = authService.getCurrentUser();
+        if (firebaseUser == null) {
+            if (callback != null) {
+                callback.onError(new Exception("Usuario no autenticado"));
+            }
+            return;
+        }
+
+        if (toma == null) {
+            if (callback != null) {
+                callback.onError(new Exception("Datos de la toma no válidos"));
+            }
+            return;
+        }
+
+        if (toma.getMedicamentoId() == null || toma.getMedicamentoId().isEmpty()) {
+            if (callback != null) {
+                callback.onError(new Exception("El ID del medicamento es obligatorio"));
+            }
+            return;
+        }
+
+        toma.setUserId(firebaseUser.getUid());
+        Date ahora = new Date();
+        if (toma.getFechaHoraTomada() == null) {
+            toma.setFechaHoraTomada(ahora);
+        }
+        if (toma.getFechaHoraProgramada() == null) {
+            toma.setFechaHoraProgramada(toma.getFechaHoraTomada());
+        }
+        if (toma.getEstado() == null) {
+            toma.setEstado(Toma.EstadoToma.TOMADA);
+        }
+
+        Map<String, Object> tomaMap = tomaToMap(toma);
+        db.collection(COLLECTION_TOMAS)
+            .add(tomaMap)
+            .addOnSuccessListener(documentReference -> {
+                Log.d(TAG, "Toma registrada con ID: " + documentReference.getId());
+                toma.setId(documentReference.getId());
+                if (callback != null) {
+                    callback.onSuccess(toma);
+                }
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error al registrar la toma", e);
+                if (callback != null) {
+                    callback.onError(e);
+                }
+            });
+    }
+
+    /**
+     * Obtiene las tomas registradas para un medicamento específico.
+     */
+    public void obtenerTomasPorMedicamento(String medicamentoId, FirestoreListCallback callback) {
+        FirebaseUser firebaseUser = authService.getCurrentUser();
+        if (firebaseUser == null) {
+            if (callback != null) {
+                callback.onError(new Exception("Usuario no autenticado"));
+            }
+            return;
+        }
+
+        db.collection(COLLECTION_TOMAS)
+            .whereEqualTo("userId", firebaseUser.getUid())
+            .whereEqualTo("medicamentoId", medicamentoId)
+            .orderBy("fechaHoraTomada", Query.Direction.DESCENDING)
+            .get()
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    List<Toma> tomas = new ArrayList<>();
+                    for (DocumentSnapshot document : task.getResult()) {
+                        tomas.add(mapToToma(document));
+                    }
+                    if (callback != null) {
+                        callback.onSuccess(tomas);
+                    }
+                } else {
+                    Log.e(TAG, "Error al obtener tomas del medicamento", task.getException());
+                    if (callback != null) {
+                        callback.onError(task.getException());
+                    }
+                }
+            });
+    }
+
+    /**
+     * Obtiene todas las tomas del usuario actual.
+     */
+    public void obtenerTomasUsuario(FirestoreListCallback callback) {
+        FirebaseUser firebaseUser = authService.getCurrentUser();
+        if (firebaseUser == null) {
+            if (callback != null) {
+                callback.onError(new Exception("Usuario no autenticado"));
+            }
+            return;
+        }
+
+        db.collection(COLLECTION_TOMAS)
+            .whereEqualTo("userId", firebaseUser.getUid())
+            .orderBy("fechaHoraTomada", Query.Direction.DESCENDING)
+            .get()
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    List<Toma> tomas = new ArrayList<>();
+                    for (DocumentSnapshot document : task.getResult()) {
+                        tomas.add(mapToToma(document));
+                    }
+                    if (callback != null) {
+                        callback.onSuccess(tomas);
+                    }
+                } else {
+                    Log.e(TAG, "Error al obtener tomas del usuario", task.getException());
+                    if (callback != null) {
+                        callback.onError(task.getException());
+                    }
+                }
+            });
+    }
+
     /**
      * Elimina un medicamento
      */
@@ -511,47 +638,6 @@ public class FirebaseService {
             });
     }
 
-    // ==================== TOMAS ====================
-
-    /**
-     * Guarda una toma en Firestore
-     */
-    public void guardarToma(Toma toma, FirestoreCallback callback) {
-        FirebaseUser firebaseUser = authService.getCurrentUser();
-        if (firebaseUser == null) {
-            if (callback != null) {
-                callback.onError(new Exception("Usuario no autenticado"));
-            }
-            return;
-        }
-
-        Map<String, Object> tomaMap = tomaToMap(toma);
-        tomaMap.put("userId", firebaseUser.getUid());
-        tomaMap.put("fechaCreacion", com.google.firebase.Timestamp.now());
-
-        db.collection(COLLECTION_TOMAS)
-            .add(tomaMap)
-            .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                @Override
-                public void onSuccess(DocumentReference documentReference) {
-                    Log.d(TAG, "Toma guardada con ID: " + documentReference.getId());
-                    toma.setId(documentReference.getId());
-                    if (callback != null) {
-                        callback.onSuccess(toma);
-                    }
-                }
-            })
-            .addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.e(TAG, "Error al guardar toma", e);
-                    if (callback != null) {
-                        callback.onError(e);
-                    }
-                }
-            });
-    }
-
     // ==================== LISTENERS EN TIEMPO REAL ====================
 
     /**
@@ -622,6 +708,43 @@ public class FirebaseService {
             usuario.setRole(document.getString("role"));
         }
         return usuario;
+    }
+
+    private Map<String, Object> tomaToMap(Toma toma) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("medicamentoId", toma.getMedicamentoId());
+        map.put("medicamentoNombre", toma.getMedicamentoNombre());
+        map.put("userId", toma.getUserId());
+        map.put("estado", toma.getEstado() != null ? toma.getEstado().name() : Toma.EstadoToma.TOMADA.name());
+        map.put("observaciones", toma.getObservaciones() != null ? toma.getObservaciones() : "");
+        map.put("fechaHoraProgramada", toma.getFechaHoraProgramada());
+        map.put("fechaHoraTomada", toma.getFechaHoraTomada());
+        map.put("createdAt", new Date());
+        return map;
+    }
+
+    private Toma mapToToma(DocumentSnapshot document) {
+        Toma toma = new Toma();
+        toma.setId(document.getId());
+        toma.setMedicamentoId(document.getString("medicamentoId"));
+        toma.setMedicamentoNombre(document.getString("medicamentoNombre"));
+        toma.setUserId(document.getString("userId"));
+        toma.setObservaciones(document.getString("observaciones"));
+        toma.setFechaHoraProgramada(document.getDate("fechaHoraProgramada"));
+        toma.setFechaHoraTomada(document.getDate("fechaHoraTomada"));
+
+        String estado = document.getString("estado");
+        if (estado != null) {
+            try {
+                toma.setEstado(Toma.EstadoToma.valueOf(estado));
+            } catch (IllegalArgumentException e) {
+                toma.setEstado(Toma.EstadoToma.TOMADA);
+            }
+        } else {
+            toma.setEstado(Toma.EstadoToma.TOMADA);
+        }
+
+        return toma;
     }
 
     private Map<String, Object> medicamentoToMap(Medicamento medicamento) {
@@ -875,22 +998,136 @@ public class FirebaseService {
         return medicamento;
     }
 
-    private Map<String, Object> tomaToMap(Toma toma) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("medicamentoId", toma.getMedicamentoId());
-        if (toma.getFechaHoraProgramada() != null) {
-            map.put("fechaHoraProgramada", new com.google.firebase.Timestamp(
-                new java.sql.Timestamp(toma.getFechaHoraProgramada().getTime())));
+    /**
+     * Elimina todos los medicamentos del usuario actual
+     */
+    public void eliminarTodosLosMedicamentos(FirestoreCallback callback) {
+        FirebaseUser firebaseUser = authService.getCurrentUser();
+        if (firebaseUser == null) {
+            if (callback != null) {
+                callback.onError(new Exception("Usuario no autenticado"));
+            }
+            return;
         }
-        if (toma.getFechaHoraTomada() != null) {
-            map.put("fechaHoraTomada", new com.google.firebase.Timestamp(
-                new java.sql.Timestamp(toma.getFechaHoraTomada().getTime())));
-        }
-        map.put("estado", toma.getEstado().name());
-        map.put("observaciones", toma.getObservaciones());
-        return map;
+
+        db.collection(COLLECTION_MEDICAMENTOS)
+            .whereEqualTo("userId", firebaseUser.getUid())
+            .get()
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    List<Task<Void>> deleteTasks = new ArrayList<>();
+                    for (DocumentSnapshot document : task.getResult()) {
+                        deleteTasks.add(document.getReference().delete());
+                    }
+                    
+                    if (deleteTasks.isEmpty()) {
+                        if (callback != null) {
+                            callback.onSuccess(null);
+                        }
+                        return;
+                    }
+                    
+                    com.google.android.gms.tasks.Tasks.whenAll(deleteTasks)
+                        .addOnSuccessListener(aVoid -> {
+                            Log.d(TAG, "Todos los medicamentos eliminados exitosamente");
+                            if (callback != null) {
+                                callback.onSuccess(null);
+                            }
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e(TAG, "Error al eliminar medicamentos", e);
+                            if (callback != null) {
+                                callback.onError(e);
+                            }
+                        });
+                } else {
+                    Log.e(TAG, "Error al obtener medicamentos para eliminar", task.getException());
+                    if (callback != null) {
+                        callback.onError(task.getException());
+                    }
+                }
+            });
     }
 
+    /**
+     * Elimina todas las tomas del usuario actual
+     */
+    public void eliminarTodasLasTomas(FirestoreCallback callback) {
+        FirebaseUser firebaseUser = authService.getCurrentUser();
+        if (firebaseUser == null) {
+            if (callback != null) {
+                callback.onError(new Exception("Usuario no autenticado"));
+            }
+            return;
+        }
+
+        db.collection(COLLECTION_TOMAS)
+            .whereEqualTo("userId", firebaseUser.getUid())
+            .get()
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    List<Task<Void>> deleteTasks = new ArrayList<>();
+                    for (DocumentSnapshot document : task.getResult()) {
+                        deleteTasks.add(document.getReference().delete());
+                    }
+                    
+                    if (deleteTasks.isEmpty()) {
+                        if (callback != null) {
+                            callback.onSuccess(null);
+                        }
+                        return;
+                    }
+                    
+                    com.google.android.gms.tasks.Tasks.whenAll(deleteTasks)
+                        .addOnSuccessListener(aVoid -> {
+                            Log.d(TAG, "Todas las tomas eliminadas exitosamente");
+                            if (callback != null) {
+                                callback.onSuccess(null);
+                            }
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e(TAG, "Error al eliminar tomas", e);
+                            if (callback != null) {
+                                callback.onError(e);
+                            }
+                        });
+                } else {
+                    Log.e(TAG, "Error al obtener tomas para eliminar", task.getException());
+                    if (callback != null) {
+                        callback.onError(task.getException());
+                    }
+                }
+            });
+    }
+
+    /**
+     * Elimina el documento de usuario en Firestore
+     */
+    public void eliminarUsuario(FirestoreCallback callback) {
+        FirebaseUser firebaseUser = authService.getCurrentUser();
+        if (firebaseUser == null) {
+            if (callback != null) {
+                callback.onError(new Exception("Usuario no autenticado"));
+            }
+            return;
+        }
+
+        db.collection(COLLECTION_USUARIOS)
+            .document(firebaseUser.getUid())
+            .delete()
+            .addOnSuccessListener(aVoid -> {
+                Log.d(TAG, "Usuario eliminado de Firestore exitosamente");
+                if (callback != null) {
+                    callback.onSuccess(null);
+                }
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error al eliminar usuario de Firestore", e);
+                if (callback != null) {
+                    callback.onError(e);
+                }
+            });
+    }
 
     // ==================== INTERFACES ====================
 
